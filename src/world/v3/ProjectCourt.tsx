@@ -347,6 +347,7 @@ export function ProjectCourt({ materialAdapter, reducedMotion = false }: Project
   const plinthGeometry = useMemo(() => new THREE.CylinderGeometry(1, 1, 1, 10, 1), [])
   const clearingGeometry = useMemo(createCourtClearingGeometry, [])
   const artworkGeometry = useMemo(() => new THREE.PlaneGeometry(ART_WIDTH, ART_HEIGHT, 12, 16), [])
+  const tapFieldGeometry = useMemo(() => new THREE.PlaneGeometry(1, 1), [])
   const hiddenPlaceholderMaterial = useMemo(() => new THREE.MeshBasicMaterial({ visible: false }), [])
   const centerRaycaster = useMemo(() => {
     const raycaster = new THREE.Raycaster()
@@ -465,9 +466,10 @@ export function ProjectCourt({ materialAdapter, reducedMotion = false }: Project
     plinthGeometry.dispose()
     clearingGeometry.dispose()
     artworkGeometry.dispose()
+    tapFieldGeometry.dispose()
     hiddenPlaceholderMaterial.dispose()
     artworkMaterials.forEach((material) => material.dispose())
-  }, [artworkGeometry, artworkMaterials, backingGeometry, clearingGeometry, frameGeometry, hiddenPlaceholderMaterial, plinthGeometry])
+  }, [artworkGeometry, artworkMaterials, backingGeometry, clearingGeometry, frameGeometry, hiddenPlaceholderMaterial, plinthGeometry, tapFieldGeometry])
 
   return (
     <group dispose={null} name="v3-nine-project-hanging-scroll-sanctuary">
@@ -522,6 +524,28 @@ export function ProjectCourt({ materialAdapter, reducedMotion = false }: Project
             scale={placement.scale}
             userData={{ projectHref: project.href, projectSlug: project.slug }}
           >
+            <mesh
+              geometry={tapFieldGeometry}
+              material={hiddenPlaceholderMaterial}
+              name={`V3_ProjectTapField_${project.slug}`}
+              onClick={(event) => {
+                event.stopPropagation()
+                window.open(project.href, '_blank', 'noopener,noreferrer')
+              }}
+              onPointerOut={() => {
+                setHoveredIndex((current) => current === index ? null : current)
+              }}
+              onPointerOver={(event) => {
+                event.stopPropagation()
+                setHoveredIndex(index)
+              }}
+              position={[
+                0,
+                PANEL_CENTER_Y + (PANEL_HEIGHT - PANEL_HEIGHT * placement.length) * 0.5,
+                0.058,
+              ]}
+              scale={[2.05, PANEL_HEIGHT * placement.length + 0.36, 1]}
+            />
             <mesh
               geometry={artworkGeometry}
               material={artworkMaterials[index]}
