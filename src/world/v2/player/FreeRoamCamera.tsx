@@ -6,7 +6,7 @@ import * as THREE from 'three'
 import {
   createCinematicRailPose,
   sampleCinematicGardenRail,
-} from '../runtime/cinematicRail'
+} from '../../v3/cinematicRail'
 import { freeRoamInput } from '../runtime/input'
 import { freeRoamStore } from '../runtime/store'
 
@@ -61,8 +61,10 @@ export function FreeRoamCamera({
   const vectors = useMemo(() => ({
     anchor: new THREE.Vector3(),
     direction: new THREE.Vector3(),
+    localPosition: new THREE.Vector3(),
     lookTarget: new THREE.Vector3(),
     position: new THREE.Vector3(),
+    worldPosition: new THREE.Vector3(),
   }), [])
   const desiredOrientation = useMemo(() => new THREE.PerspectiveCamera(), [])
 
@@ -94,6 +96,9 @@ export function FreeRoamCamera({
       ? 1 - THREE.MathUtils.smoothstep(runtime.exploration.railProgress, 0.025, 0.18)
       : 0
     const portraitEntranceAmount = portraitAmount * entranceAmount
+    const portraitDestinationAmount = scripted
+      ? portraitAmount * THREE.MathUtils.smoothstep(runtime.exploration.railProgress, 0.88, 1)
+      : 0
     if (portraitEntranceAmount > 0.001) {
       vectors.direction.copy(railPose.lookAt).sub(vectors.anchor)
       vectors.direction.y = 0
@@ -103,22 +108,40 @@ export function FreeRoamCamera({
       }
       vectors.position.y += 0.24 * portraitEntranceAmount
     }
+    if (portraitDestinationAmount > 0.001) {
+      vectors.direction.copy(railPose.lookAt).sub(vectors.anchor)
+      vectors.direction.y = 0
+      if (vectors.direction.lengthSq() > 0.0001) {
+        vectors.direction.normalize()
+        vectors.position.addScaledVector(vectors.direction, -6 * portraitDestinationAmount)
+      }
+      vectors.position.y += 0.28 * portraitDestinationAmount
+    }
 
-    if (!initialized.current || activeCamera.position.distanceToSquared(vectors.position) > 16) {
-      activeCamera.position.copy(vectors.position)
+    // The camera is a sibling of the anchor inside the translated player
+    // body. Convert the authored world-space target into that parent's local
+    // space; assigning world coordinates directly here doubles every player
+    // translation and eventually sends the camera beyond the destination.
+    vectors.localPosition.copy(vectors.position)
+    activeCamera.parent?.worldToLocal(vectors.localPosition)
+
+    if (!initialized.current || activeCamera.position.distanceToSquared(vectors.localPosition) > 16) {
+      activeCamera.position.copy(vectors.localPosition)
       initialized.current = true
     } else {
       activeCamera.position.lerp(
-        vectors.position,
+        vectors.localPosition,
         1 - Math.exp(-positionDamping * delta),
       )
     }
+    activeCamera.updateMatrixWorld(true)
+    activeCamera.getWorldPosition(vectors.worldPosition)
 
     let targetFov = fov
     let targetRoll = 0
 
     if (scripted) {
-      vectors.direction.copy(railPose.lookAt).sub(activeCamera.position)
+      vectors.direction.copy(railPose.lookAt).sub(vectors.worldPosition)
       const horizontalLength = Math.hypot(vectors.direction.x, vectors.direction.z)
       const authoredYaw = Math.atan2(vectors.direction.x, -vectors.direction.z)
       const authoredPitch = Math.atan2(vectors.direction.y, Math.max(horizontalLength, 0.0001))
@@ -148,7 +171,9 @@ export function FreeRoamCamera({
         minPitch,
         maxPitch,
       )
-      targetFov = railPose.fov + 12 * portraitEntranceAmount
+      targetFov = railPose.fov
+        + 12 * portraitEntranceAmount
+        + 18 * portraitDestinationAmount
       targetRoll = railPose.roll
     } else {
       railYawOffset.current = 0
@@ -170,9 +195,9 @@ export function FreeRoamCamera({
       Math.sin(pitch.current),
       -Math.cos(yaw.current) * cosPitch,
     )
-    vectors.lookTarget.copy(activeCamera.position).addScaledVector(vectors.direction, 20)
+    vectors.lookTarget.copy(vectors.worldPosition).addScaledVector(vectors.direction, 20)
 
-    desiredOrientation.position.copy(activeCamera.position)
+    desiredOrientation.position.copy(vectors.worldPosition)
     desiredOrientation.up.set(0, 1, 0)
     desiredOrientation.lookAt(vectors.lookTarget)
     if (targetRoll !== 0) desiredOrientation.rotateZ(targetRoll)
@@ -191,8 +216,9 @@ export function FreeRoamCamera({
     diagnosticsClock.current += delta
     if (diagnosticsClock.current >= 0.25) {
       diagnosticsClock.current = 0
+      activeCamera.getWorldPosition(vectors.worldPosition)
       runtime.setDiagnostics({
-        cameraDistance: activeCamera.position.distanceTo(vectors.anchor),
+        cameraDistance: vectors.worldPosition.distanceTo(vectors.anchor),
       })
     }
   })

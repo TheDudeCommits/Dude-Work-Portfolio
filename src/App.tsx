@@ -21,6 +21,7 @@ declare global {
   interface Window {
     __DUDE_WORK_DEBUG__?: {
       interact: () => void
+      rail: (progress: number) => void
       reset: () => void
       snapshot: typeof getFreeRoamSnapshot
       teleport: typeof freeRoamCommands.teleport
@@ -222,7 +223,6 @@ function SymbolicHud({
         {muted ? <VolumeX /> : <Volume2 />}
         <span aria-hidden="true" />
       </button>
-      <div aria-hidden="true" className="garden-depth-stroke"><i /></div>
       <JourneyHint visible={showJourneyHint} />
       <TouchJoystick />
       <TouchLookPad />
@@ -268,6 +268,7 @@ function App() {
   const diagnostics = useFreeRoamStore((state) => state.diagnostics)
   const pointerLocked = useFreeRoamStore((state) => state.pointerLocked)
   const explorationMode = useFreeRoamStore((state) => state.exploration.mode)
+  const railProgress = useFreeRoamStore((state) => state.exploration.railProgress)
   const reducedMotion = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, [])
 
   const handleEnter = useCallback(() => {
@@ -306,7 +307,10 @@ function App() {
   useEffect(() => {
     const player = audio.current
     if (!player) return
-    const distanceToHeart = Math.hypot(motion.position[0], motion.position[2] + 5)
+    const distanceToHeart = Math.hypot(
+      motion.position[0] - 12.4,
+      motion.position[2] + 10.3,
+    )
     const proximity = 1 - smoothstep(distanceToHeart, 8, 30)
     const targetGain = muted ? 0 : Math.min(0.58, 0.025 + proximity * 0.53)
     const graph = audioGraph.current
@@ -357,7 +361,8 @@ function App() {
     if (!import.meta.env.DEV) return
     window.__DUDE_WORK_DEBUG__ = {
       interact: () => freeRoamTouch.interact(),
-      reset: () => freeRoamCommands.teleport([0, 1.05, 18.6]),
+      rail: (progress) => freeRoamCommands.resumeCinematicRail(progress),
+      reset: () => freeRoamCommands.teleport([-6.8, 2.32, 27.8]),
       snapshot: getFreeRoamSnapshot,
       teleport: freeRoamCommands.teleport,
     }
@@ -366,13 +371,18 @@ function App() {
     }
   }, [])
 
-  const gardenDepth = Math.max(0, Math.min(1, (18.6 - motion.position[2]) / 38.6))
-  const showJourneyHint = motion.speed < 0.08 && Math.hypot(motion.position[0], motion.position[2] - 18.6) < 1.4
-  const reachedProjectCourt = gardenDepth > 0.82
+  const gardenDepth = explorationMode === 'free'
+    ? Math.max(0, Math.min(1, (27.8 - motion.position[2]) / 31.6))
+    : railProgress
+  const showJourneyHint = motion.speed < 0.08 && Math.hypot(motion.position[0] + 6.8, motion.position[2] - 27.8) < 1.8
+  const reachedProjectCourt = gardenDepth > 0.96
   const showSocials = reachedProjectCourt
 
   return (
-    <main className={`experience${entered ? ' has-entered' : ''}${contextLost ? ' has-context-loss' : ''}${explorationMode !== 'free' ? ' is-cinematic-rail' : ' is-free-roam'}${reachedProjectCourt ? ' is-project-court' : ''}`}>
+    <main
+      className={`experience${entered ? ' has-entered' : ''}${contextLost ? ' has-context-loss' : ''}${explorationMode !== 'free' ? ' is-cinematic-rail' : ' is-free-roam'}${reachedProjectCourt ? ' is-project-court' : ''}`}
+      style={{ '--garden-depth': gardenDepth } as CSSProperties}
+    >
       <LivingScrollWorld
         active={entered && !contextLost}
         onContextLost={setContextLost}
@@ -381,6 +391,7 @@ function App() {
       />
       <audio loop playsInline preload="metadata" ref={audio} src="/assets/audio/bamboo-flute.webm" />
       {veilVisible && <EntryVeil exiting={entered} onEnter={handleEnter} ready={ready} />}
+      <div aria-hidden="true" className="foreground-ink-frame" />
       {entered && (
         <SymbolicHud
           depth={gardenDepth}

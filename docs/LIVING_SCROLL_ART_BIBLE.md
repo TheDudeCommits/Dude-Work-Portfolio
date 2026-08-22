@@ -1,13 +1,19 @@
 # Living Scroll art bible
 
-The active visual target is a dimensional Japanese sumi-e garden painted on living washi: pale after-rain dawn, celadon atmosphere, teal water, concentrated soot silhouettes, and rare vermilion or aged-gold interaction pigment. The runtime must remain recognizably three-dimensional and freely explorable from every camera angle.
+The active visual target is a dimensional Japanese sumi-e garden painted on living washi: pale after-rain dawn, celadon atmosphere, teal water, concentrated soot silhouettes, and rare vermilion or aged-gold interaction pigment. The runtime must remain recognizably three-dimensional and freely explorable within its authored first-person bounds.
 
-## Approved target frames
+## Reference frames, not parity claims
 
 - `docs/art-direction/living-scroll-free-roam-target.png` — normal exploration state.
-- `docs/art-direction/living-scroll-project-court-target.png` — peak shrine-awakening state. Its gold density is temporary interaction feedback, not the normal world balance.
+- `docs/art-direction/living-scroll-project-court-target.png` — legacy peak shrine-awakening reference. Its gold density is temporary interaction feedback, not the normal world balance.
 
 These images are art-direction references generated for this project. They are not runtime screenshots and must never be used as panoramic scenery or presented as implemented output.
+
+The current V3 runtime is first-person and renders no character. Any figure,
+third-person framing, Enso court, or shrine ritual visible in an older target
+image is reference mood only, not a claim about the checked-in composition. The
+runtime is accepted through direct browser QA, not visual similarity asserted in
+this document.
 
 ## Palette and frame balance
 
@@ -33,27 +39,32 @@ Normal gameplay cameras should contain roughly 45–55% paper, sky, and mist; 35
 - Architecture is bowed, softened, irregular, and handmade rather than CAD-perfect.
 - Repeated assets vary 3–8% in lean, scale, or silhouette while retaining one species grammar.
 - A hero asset must remain readable in silhouette at 128 pixels.
-- Visible hero torii, bridge, lantern, shrine, tree, and architecture may not ship as untouched runtime primitives.
+- Visible hero torii, bridge, lantern, tree, and court-frame architecture may not ship as untouched runtime primitives. Runtime-generated support ground, water, ink rings, contact washes, and hanging-scroll assemblies are allowed when they follow the same material and shape grammar.
 
 ## Runtime material contract
 
 Shipping GLBs use semantic slots only: `MAT_SUMI_WASHI`, `MAT_SUMI_STONE`, `MAT_SUMI_TIMBER`, `MAT_SUMI_VERMILION`, `MAT_SUMI_FOLIAGE`, `MAT_SUMI_WATER`, `MAT_SUMI_SPIRIT`, and `MAT_SUMI_METAL`. The runtime resolves these through the shared material registry; imported assets may not bring arbitrary final PBR materials into the garden.
 
-Authoring data:
+Current authored vertex data uses Blender attribute `SumiData`, exported as
+`COLOR_0`:
 
-- `COLOR_0.rgb`: approved-palette variation.
-- `COLOR_0.a`: outline weight or suppression.
-- `TEXCOORD_1.x`: wind deformation weight.
-- `TEXCOORD_1.y`: interaction displacement weight.
-- `INKMASK.r`: cavity and pigment pooling.
-- `INKMASK.g`: dry-brush breakup.
-- `INKMASK.b`: wetness and ink reactivity.
-- `INKMASK.a`: opacity or cutout.
+- R: pigment density and pooling;
+- G: wetness and ink-field response;
+- B: dry-edge breakup;
+- A: wind deformation weight.
+
+The GLB loader clones `COLOR_0.a` into the runtime `aSumiWind` attribute. Other
+living-sumi attributes are derived or defaulted by the shared material adapter;
+the active V3 assets do not rely on the former `TEXCOORD_1` or `INKMASK`
+contract.
 
 ## Asset naming
 
 ```text
+ROOT_<zone>_V3
+ASSET_<asset>
 VIS_<asset>_LOD0
+VIS_<asset>_LOD1
 COL_<asset>_<role>_00
 TRG_<asset>_<event>
 SOCKET_<asset>_<purpose>
@@ -62,18 +73,26 @@ AUD_<asset>_<event>
 ANIM_<asset>_<action>
 ```
 
-Every runtime asset records its palette roles, LODs, collider proxies, interaction sockets, surface-audio tag, wind profile, ink response, streaming zone, provenance, license, and checksum.
+Each authored V3 GLB records semantic palette roles, two LODs, vertex-mask
+semantics, contract nodes, streaming zone, provenance, license, and checksum.
+Contract nodes may exist ahead of runtime integration; their presence does not
+mean collision, triggers, effects, or spatial audio are already wired.
 
 ## Consistency gates
 
-- All active colors originate in `src/art/artTokens.ts`.
-- All active scene materials originate in the shared art-material system.
+- Environment material bands and authored semantic roles originate in the shared art tokens. Supplied project images and audited HTML/CSS overlays are explicit exceptions.
+- Authored GLBs and runtime ground/water supports resolve through the shared living-sumi adapter. Project artwork and ink rings use dedicated shaders because their sampling and transparency contracts differ.
 - Water, transparent VFX, fog, and portal interiors do not receive generic outlines.
 - Wind phase derives from world position; repeated plants do not sway in lockstep.
-- Footsteps, water, bells, doors, koi, foliage, and project rituals emit through one living-ink event field.
-- Every project receives a unique sculpture but shares the same shrine proportions, material grammar, activation timing, and wordless interaction feedback.
+- Current motion is limited to vertex-weighted wind, water rings, court-scroll breathing/hover, rail camera motion, and HTML/CSS foreground parallax. Do not document unimplemented footsteps, doors, koi, or ritual event systems as shipping behavior.
+- Every project uses the same hanging-scroll grammar with its own supplied artwork; the staggered scale, lift, radius, length, and yaw create hierarchy without claiming nine unique sculptures.
 - Assets are reviewed together from fixed gameplay cameras, never approved only as isolated turntables.
 
 ## Generation record
 
-The target frames were produced with the built-in image-generation workflow from two linked prompts: a normal third-person free-roaming garden and the same character and material language at the activated Enso project court. Both prompts explicitly prohibit visible text, HUD, gallery walls, generic low-poly primitives, mixed asset-pack styling, black-and-white presentation, and a camera-wide ink filter.
+The two older target frames were produced with the built-in image-generation
+workflow from linked third-person garden and Enso-court prompts. They remain a
+record of palette, material, and compositional intent. V3 subsequently moved to
+a disembodied first-person camera and a nine-hanging-scroll sanctuary. The
+current page keeps visible project labels out of the artwork while retaining
+ARIA labels and screen-reader-only links for accessibility.

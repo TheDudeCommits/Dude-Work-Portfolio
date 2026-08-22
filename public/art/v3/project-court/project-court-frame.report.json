@@ -1,0 +1,148 @@
+{
+  "contract": "dude.work.sumi-v3/1",
+  "file": "public/art/v3/project-court/project-court-frame.glb",
+  "bytes": 744752,
+  "mebibytes": 0.71,
+  "sha256": "aea8680c5dad4bfbf9021d7f63a3d006f752c59c8e7fcc40287e945d1ce7f6d8",
+  "runtimeAnchorThree": [
+    12.4,
+    0,
+    -10.3
+  ],
+  "bounds": {
+    "localThree": {
+      "min": [
+        -7.7122,
+        -0.2463,
+        -5.6406
+      ],
+      "max": [
+        7.6893,
+        9.7516,
+        5.3249
+      ]
+    },
+    "worldThree": {
+      "min": [
+        4.6878,
+        -0.2463,
+        -15.9406
+      ],
+      "max": [
+        20.0893,
+        9.7516,
+        -4.9751
+      ]
+    }
+  },
+  "triangles": 38724,
+  "meshNodes": 8,
+  "primitives": 12,
+  "contractNodes": {
+    "colliders": 7,
+    "sockets": 11,
+    "triggers": 1,
+    "effects": 1,
+    "audio": 1
+  },
+  "lodSummary": {
+    "lod0": {
+      "triangles": 30748,
+      "primitives": 6
+    },
+    "lod1": {
+      "triangles": 7976,
+      "primitives": 6
+    }
+  },
+  "materials": [
+    "MAT_SUMI_FOLIAGE",
+    "MAT_SUMI_STONE",
+    "MAT_SUMI_TIMBER"
+  ],
+  "extensions": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
+  ],
+  "vertexColor": {
+    "attribute": "COLOR_0",
+    "sourceName": "SumiData",
+    "semantics": [
+      "pigment",
+      "wetness",
+      "dry-edge",
+      "wind"
+    ]
+  },
+  "integration": {
+    "rootNode": "ROOT_ProjectCourtFrame_V3",
+    "placeAt": [
+      12.4,
+      0,
+      -10.3
+    ],
+    "screenFan": {
+      "count": 9,
+      "radius": 4.6,
+      "arcDegrees": [
+        208,
+        332
+      ]
+    },
+    "screenSockets": [
+      "SOCKET_ProjectScreen_00",
+      "SOCKET_ProjectScreen_01",
+      "SOCKET_ProjectScreen_02",
+      "SOCKET_ProjectScreen_03",
+      "SOCKET_ProjectScreen_04",
+      "SOCKET_ProjectScreen_05",
+      "SOCKET_ProjectScreen_06",
+      "SOCKET_ProjectScreen_07",
+      "SOCKET_ProjectScreen_08"
+    ],
+    "lodRule": "show exactly one LOD per ASSET_* group before first rendered frame"
+  },
+  "meshes": [
+    {
+      "name": "VIS_CourtDais_LOD0",
+      "primitives": 1,
+      "triangles": 1796
+    },
+    {
+      "name": "VIS_CourtDais_LOD1",
+      "primitives": 1,
+      "triangles": 1252
+    },
+    {
+      "name": "VIS_CourtLanterns_LOD0",
+      "primitives": 1,
+      "triangles": 3588
+    },
+    {
+      "name": "VIS_CourtLanterns_LOD1",
+      "primitives": 1,
+      "triangles": 2100
+    },
+    {
+      "name": "VIS_CourtPineArch_LOD0",
+      "primitives": 2,
+      "triangles": 22432
+    },
+    {
+      "name": "VIS_CourtPineArch_LOD1",
+      "primitives": 2,
+      "triangles": 3780
+    },
+    {
+      "name": "VIS_CourtRockRoots_LOD0",
+      "primitives": 2,
+      "triangles": 2932
+    },
+    {
+      "name": "VIS_CourtRockRoots_LOD1",
+      "primitives": 2,
+      "triangles": 844
+    }
+  ],
+  "failures": []
+}

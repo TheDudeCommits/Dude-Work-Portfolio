@@ -12,7 +12,7 @@ import type {
   Vector3Tuple,
 } from './types'
 
-const DEFAULT_SPAWN: Vector3Tuple = [0, 1.05, 18.6]
+const DEFAULT_SPAWN: Vector3Tuple = [-6.8, 2.32, 27.8]
 
 const DEFAULT_MOTION: FreeRoamMotionState = {
   grounded: false,

@@ -1,6 +1,7 @@
 :root {
   color: #272825;
-  background: #c9d0c5;
+  background:
+    #c9d0c5 url('/art/v3/mattes/mountain-valley.webp') center 64% / cover no-repeat;
   font-family: serif;
   font-synthesis: none;
   text-rendering: geometricPrecision;
@@ -40,7 +41,8 @@ button {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #c9d0c5;
+  background:
+    #c9d0c5 url('/art/v3/mattes/mountain-valley.webp') center 64% / cover no-repeat;
   isolation: isolate;
 }
 
@@ -74,8 +76,35 @@ button {
     url('/assets/kozo-washi.webp');
   background-position: center;
   background-size: cover, 820px;
-  opacity: .22;
+  opacity: .17;
   mix-blend-mode: multiply;
+}
+
+.foreground-ink-frame {
+  position: fixed;
+  z-index: 48;
+  inset: -1.5%;
+  pointer-events: none;
+  background: url('/art/v3/mattes/foreground-pine-frame.webp') center / 100% 100% no-repeat;
+  filter: saturate(.82) contrast(1.06);
+  opacity: clamp(0, calc(1.36 - var(--garden-depth) * 14), .96);
+  transform: translate3d(calc(var(--garden-depth) * -1.2vw), calc(var(--garden-depth) * -.7vh), 0)
+    scale(calc(1.015 + var(--garden-depth) * .08));
+  transition: opacity .7s ease-out;
+  will-change: opacity, transform;
+}
+
+.experience.is-project-court .foreground-ink-frame {
+  inset: -2% -2% auto;
+  height: 54vh;
+  background-position: center top;
+  background-size: 100vw 100vh;
+  filter: saturate(.58) contrast(1.2) brightness(.72);
+  -webkit-mask-image: linear-gradient(180deg, #000 0 58%, rgb(0 0 0 / 82%) 74%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0 58%, rgb(0 0 0 / 82%) 74%, transparent 100%);
+  mix-blend-mode: multiply;
+  opacity: .44;
+  transform: translate3d(0, -1.5vh, 0) scale(1.04);
 }
 
 .cinematic-frame {
@@ -92,12 +121,12 @@ button {
   position: absolute;
   right: -3vw;
   left: -3vw;
-  height: clamp(18px, 3.8vh, 54px);
+  height: clamp(9px, 1.35vh, 18px);
   background:
     radial-gradient(ellipse at 16% 100%, transparent 0 46%, rgb(24 29 27 / 42%) 66%, rgb(13 16 15 / 77%) 100%),
     linear-gradient(180deg, rgb(13 16 15 / 84%), rgb(39 40 37 / 50%) 58%, transparent);
   filter: blur(.35px);
-  opacity: .82;
+  opacity: .38;
   transform-origin: center;
   animation: film-gate-breathe 12s steps(7, end) infinite alternate;
 }
@@ -119,7 +148,7 @@ button {
   top: 7%;
   bottom: 6%;
   width: min(5vw, 58px);
-  opacity: .32;
+  opacity: .18;
   filter: blur(5px);
 }
 
@@ -682,8 +711,8 @@ button {
 }
 
 @keyframes film-gate-breathe {
-  from { opacity: .74; transform: translate3d(-.25%, 0, 0) scaleY(.94); }
-  to { opacity: .9; transform: translate3d(.25%, 0, 0) scaleY(1.04); }
+  from { opacity: .3; transform: translate3d(-.25%, 0, 0) scaleY(.94); }
+  to { opacity: .44; transform: translate3d(.25%, 0, 0) scaleY(1.04); }
 }
 
 @keyframes journey-orbit {

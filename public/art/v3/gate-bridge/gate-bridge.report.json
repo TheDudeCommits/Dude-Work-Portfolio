@@ -1,0 +1,123 @@
+{
+  "contract": "dude.work.sumi-v3/1",
+  "file": "public/art/v3/gate-bridge/gate-bridge.glb",
+  "bytes": 1014004,
+  "mebibytes": 0.967,
+  "sha256": "0bca02d2fdc986994e7faf0530982c7de001cddbbaea7fa16e55f26a53db6082",
+  "triangles": 57995,
+  "meshNodes": 14,
+  "primitives": 32,
+  "contractNodes": {
+    "colliders": 11,
+    "sockets": 2,
+    "triggers": 1,
+    "effects": 1,
+    "audio": 1
+  },
+  "lodSummary": {
+    "lod0": {
+      "triangles": 47455,
+      "primitives": 16
+    },
+    "lod1": {
+      "triangles": 10540,
+      "primitives": 16
+    }
+  },
+  "materials": [
+    "MAT_SUMI_FOLIAGE",
+    "MAT_SUMI_METAL",
+    "MAT_SUMI_STONE",
+    "MAT_SUMI_TIMBER",
+    "MAT_SUMI_VERMILION",
+    "MAT_SUMI_WASHI",
+    "MAT_SUMI_WATER"
+  ],
+  "extensions": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
+  ],
+  "vertexColor": {
+    "attribute": "COLOR_0",
+    "sourceName": "SumiData",
+    "semantics": [
+      "pigment",
+      "wetness",
+      "dry-edge",
+      "wind"
+    ]
+  },
+  "meshes": [
+    {
+      "name": "VIS_GardenFrame_LOD0",
+      "primitives": 4,
+      "triangles": 19341
+    },
+    {
+      "name": "VIS_GardenFrame_LOD1",
+      "primitives": 4,
+      "triangles": 4472
+    },
+    {
+      "name": "VIS_MoonBridge_LOD0",
+      "primitives": 2,
+      "triangles": 3200
+    },
+    {
+      "name": "VIS_MoonBridge_LOD1",
+      "primitives": 2,
+      "triangles": 972
+    },
+    {
+      "name": "VIS_OldPine_LOD0",
+      "primitives": 2,
+      "triangles": 15832
+    },
+    {
+      "name": "VIS_OldPine_LOD1",
+      "primitives": 2,
+      "triangles": 2944
+    },
+    {
+      "name": "VIS_RockComposition_LOD0",
+      "primitives": 1,
+      "triangles": 950
+    },
+    {
+      "name": "VIS_RockComposition_LOD1",
+      "primitives": 1,
+      "triangles": 284
+    },
+    {
+      "name": "VIS_RopeBells_LOD0",
+      "primitives": 3,
+      "triangles": 1416
+    },
+    {
+      "name": "VIS_RopeBells_LOD1",
+      "primitives": 3,
+      "triangles": 312
+    },
+    {
+      "name": "VIS_SteppingApproach_LOD0",
+      "primitives": 1,
+      "triangles": 3106
+    },
+    {
+      "name": "VIS_SteppingApproach_LOD1",
+      "primitives": 1,
+      "triangles": 456
+    },
+    {
+      "name": "VIS_Torii_LOD0",
+      "primitives": 3,
+      "triangles": 3610
+    },
+    {
+      "name": "VIS_Torii_LOD1",
+      "primitives": 3,
+      "triangles": 1100
+    }
+  ],
+  "failures": []
+}
