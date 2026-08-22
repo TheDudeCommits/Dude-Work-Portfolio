@@ -25,6 +25,7 @@ const contactWashVertexShader = /* glsl */ `
 `
 
 const contactWashFragmentShader = /* glsl */ `
+  #include <common>
   #include <dithering_pars_fragment>
 
   uniform sampler2D uBrushTexture;

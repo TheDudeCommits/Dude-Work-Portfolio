@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { createGardenSoundscape, type GardenSoundscape } from './audio/GardenSoundscape'
 import { projects } from './projects'
 import { LivingScrollWorld } from './world/LivingScrollWorld'
 import {
@@ -251,10 +252,14 @@ function AccessibleProjectLinks() {
 
 function App() {
   const audio = useRef<HTMLAudioElement>(null)
+  const birds = useRef<HTMLAudioElement>(null)
   const audioGraph = useRef<{
+    birdsGain: GainNode
     context: AudioContext
     filter: BiquadFilterNode
-    gain: GainNode
+    master: GainNode
+    musicGain: GainNode
+    soundscape: GardenSoundscape
   } | null>(null)
   const veilTimer = useRef<number | undefined>(undefined)
   const [contextLost, setContextLost] = useState(false)
@@ -274,24 +279,46 @@ function App() {
   const handleEnter = useCallback(() => {
     if (!ready || entered) return
     const player = audio.current
+    const birdPlayer = birds.current
     if (player) {
       if (!audioGraph.current && typeof AudioContext !== 'undefined') {
         const context = new AudioContext()
         const source = context.createMediaElementSource(player)
+        const birdSource = birdPlayer ? context.createMediaElementSource(birdPlayer) : null
         const filter = context.createBiquadFilter()
-        const gain = context.createGain()
+        const birdFilter = context.createBiquadFilter()
+        const musicGain = context.createGain()
+        const birdsGain = context.createGain()
+        const master = context.createGain()
         filter.type = 'lowpass'
         filter.frequency.value = 460
         filter.Q.value = 0.72
-        gain.gain.value = 0.025
-        source.connect(filter).connect(gain).connect(context.destination)
-        audioGraph.current = { context, filter, gain }
+        birdFilter.type = 'highpass'
+        birdFilter.frequency.value = 360
+        birdFilter.Q.value = 0.3
+        musicGain.gain.value = 0.018
+        birdsGain.gain.value = 0.012
+        master.gain.value = 0.92
+        source.connect(filter).connect(musicGain).connect(master)
+        birdSource?.connect(birdFilter).connect(birdsGain).connect(master)
+        master.connect(context.destination)
+        const soundscape = createGardenSoundscape({
+          context,
+          destination: master,
+          masterGain: 0.5,
+          natureGain: 0.38,
+          seed: 0x5a454e,
+        }).start()
+        audioGraph.current = { birdsGain, context, filter, master, musicGain, soundscape }
         player.volume = 1
+        if (birdPlayer) birdPlayer.volume = 1
         void context.resume()
       } else {
         player.volume = 0.025
+        if (birdPlayer) birdPlayer.volume = 0.012
       }
       void player.play().catch(() => undefined)
+      void birdPlayer?.play().catch(() => undefined)
     }
     setEntered(true)
     veilTimer.current = window.setTimeout(() => setVeilVisible(false), reducedMotion ? 120 : 1300)
@@ -301,26 +328,31 @@ function App() {
     window.clearTimeout(veilTimer.current)
     const graph = audioGraph.current
     audioGraph.current = null
-    if (graph) void graph.context.close()
+    if (graph) {
+      graph.soundscape.dispose()
+      void graph.context.close()
+    }
   }, [])
 
   useEffect(() => {
     const player = audio.current
     if (!player) return
-    const distanceToHeart = Math.hypot(
-      motion.position[0] - 12.4,
-      motion.position[2] + 10.3,
-    )
-    const proximity = 1 - smoothstep(distanceToHeart, 8, 30)
-    const targetGain = muted ? 0 : Math.min(0.58, 0.025 + proximity * 0.53)
+    const distanceToPond = Math.hypot(motion.position[0] * 0.78, motion.position[2] + 2.5)
+    const proximity = 1 - smoothstep(distanceToPond, 6, 31)
+    const targetMusic = 0.018 + proximity * 0.22
+    const targetBirds = 0.012 + proximity * 0.11
     const graph = audioGraph.current
     if (graph) {
       const now = graph.context.currentTime
-      graph.gain.gain.setTargetAtTime(targetGain, now, 0.42)
+      graph.master.gain.setTargetAtTime(muted ? 0 : 0.92, now, muted ? 0.08 : 0.3)
+      graph.musicGain.gain.setTargetAtTime(targetMusic, now, 0.42)
+      graph.birdsGain.gain.setTargetAtTime(targetBirds, now, 0.56)
+      graph.soundscape.natureGain.gain.setTargetAtTime(0.34 + proximity * 0.34, now, 0.72)
       graph.filter.frequency.setTargetAtTime(460 + proximity * 7_400, now, 0.55)
       graph.filter.Q.setTargetAtTime(0.72 + proximity * 0.9, now, 0.6)
     } else {
-      player.volume = targetGain
+      player.volume = muted ? 0 : targetMusic
+      if (birds.current) birds.current.volume = muted ? 0 : targetBirds
     }
   }, [motion.position, muted])
 
@@ -328,13 +360,16 @@ function App() {
     const onVisibility = () => {
       const player = audio.current
       if (!player || !entered) return
+      const birdPlayer = birds.current
       const graph = audioGraph.current
       if (document.hidden) {
         player.pause()
+        birdPlayer?.pause()
         if (graph) void graph.context.suspend()
       } else if (!muted) {
         if (graph) void graph.context.resume()
         void player.play().catch(() => undefined)
+        void birdPlayer?.play().catch(() => undefined)
       }
     }
     document.addEventListener('visibilitychange', onVisibility)
@@ -375,12 +410,12 @@ function App() {
     ? Math.max(0, Math.min(1, (27.8 - motion.position[2]) / 31.6))
     : railProgress
   const showJourneyHint = motion.speed < 0.08 && Math.hypot(motion.position[0] + 6.8, motion.position[2] - 27.8) < 1.8
-  const reachedProjectCourt = gardenDepth > 0.96
-  const showSocials = reachedProjectCourt
+  const enteredDeepGarden = gardenDepth > 0.3 || explorationMode === 'free'
+  const showSocials = gardenDepth > 0.58
 
   return (
     <main
-      className={`experience${entered ? ' has-entered' : ''}${contextLost ? ' has-context-loss' : ''}${explorationMode !== 'free' ? ' is-cinematic-rail' : ' is-free-roam'}${reachedProjectCourt ? ' is-project-court' : ''}`}
+      className={`experience${entered ? ' has-entered' : ''}${contextLost ? ' has-context-loss' : ''}${explorationMode !== 'free' ? ' is-cinematic-rail' : ' is-free-roam'}${enteredDeepGarden ? ' is-deep-garden' : ''}`}
       style={{ '--garden-depth': gardenDepth } as CSSProperties}
     >
       <LivingScrollWorld
@@ -390,15 +425,20 @@ function App() {
         reducedMotion={reducedMotion}
       />
       <audio loop playsInline preload="metadata" ref={audio} src="/assets/audio/bamboo-flute.webm" />
+      <audio loop playsInline preload="metadata" ref={birds} src="/assets/audio/shizuoka-birds.mp3" />
       {veilVisible && <EntryVeil exiting={entered} onEnter={handleEnter} ready={ready} />}
-      <div aria-hidden="true" className="foreground-ink-frame" />
       {entered && (
         <SymbolicHud
           depth={gardenDepth}
           interactionAvailable={interaction.available}
           muted={muted}
           onMuteToggle={() => {
-            if (muted && audio.current?.paused) void audio.current.play().catch(() => undefined)
+            if (muted) {
+              const graph = audioGraph.current
+              if (graph) void graph.context.resume()
+              if (audio.current?.paused) void audio.current.play().catch(() => undefined)
+              if (birds.current?.paused) void birds.current.play().catch(() => undefined)
+            }
             setMuted((value) => !value)
           }}
           showJourneyHint={showJourneyHint}

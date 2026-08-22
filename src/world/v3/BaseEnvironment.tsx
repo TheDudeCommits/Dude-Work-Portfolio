@@ -10,14 +10,31 @@ function sculptedGroundHeight(x: number, z: number) {
   return broad + outerBank + thresholdLift
 }
 
-const COURT_PATH_POINTS = [
-  [0, 27],
-  [0, 11.7],
-  [-3.3, 4.2],
-  [-7.05, -3.4],
-  [7.05, -3.4],
-  [9.65, -6.1],
-  [12.4, -10.3],
+const GARDEN_PATH_LOOPS = [
+  [
+    [0, 27],
+    [0, 11.7],
+    [-3.3, 5.8],
+    [-7.8, 3.4],
+    [-9.4, -3.4],
+    [-6.7, -11.4],
+    [0, -12.3],
+  ],
+  [
+    [0, 11.7],
+    [4.2, 6.5],
+    [8.2, 2.8],
+    [9.4, -3.4],
+    [7.1, -10.7],
+    [0, -12.3],
+  ],
+  [
+    [-9.4, -3.4],
+    [-7.05, -3.4],
+    [0, -3.4],
+    [7.05, -3.4],
+    [9.4, -3.4],
+  ],
 ] as const
 
 function distanceToPathSegment(
@@ -41,13 +58,15 @@ function distanceToPathSegment(
   return Math.hypot(x - nearestX, z - nearestZ)
 }
 
-function distanceToCourtPath(x: number, z: number) {
+function distanceToGardenPaths(x: number, z: number) {
   let distance = Number.POSITIVE_INFINITY
-  for (let index = 0; index < COURT_PATH_POINTS.length - 1; index += 1) {
-    distance = Math.min(
-      distance,
-      distanceToPathSegment(x, z, COURT_PATH_POINTS[index], COURT_PATH_POINTS[index + 1]),
-    )
+  for (const path of GARDEN_PATH_LOOPS) {
+    for (let index = 0; index < path.length - 1; index += 1) {
+      distance = Math.min(
+        distance,
+        distanceToPathSegment(x, z, path[index], path[index + 1]),
+      )
+    }
   }
   return distance
 }
@@ -81,7 +100,7 @@ function createGroundCarrierGeometry() {
       uvs[vertex * 2] = u
       uvs[vertex * 2 + 1] = v
 
-      const distanceToPath = distanceToCourtPath(x, z)
+      const distanceToPath = distanceToGardenPaths(x, z)
       const pathAmount = 1 - THREE.MathUtils.smoothstep(distanceToPath, 1.7, 5.2)
       const pondEdge = 1 - THREE.MathUtils.smoothstep(
         Math.min(Math.abs(Math.abs(x) - 7), Math.abs(z + 10.5), Math.abs(z - 5.25)),

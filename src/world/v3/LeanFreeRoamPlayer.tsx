@@ -22,6 +22,7 @@ interface CircularObstacle {
 const BODY_RADIUS = 0.42
 const CAMERA_ANCHOR_OFFSET = 0.58
 const WORLD_LIMITS = { maxX: 17.5, maxZ: 30, minX: -17.5, minZ: -15.5 } as const
+const POND_LIMITS = { maxX: 6.35, maxZ: 5.25, minX: -6.35, minZ: -10.5 } as const
 
 const OBSTACLES: readonly CircularObstacle[] = [
   { radius: 0.78, x: -2.57, z: 11.7 },
@@ -43,6 +44,28 @@ function bodyHeightAt(x: number, z: number) {
 function resolveGardenBounds(position: THREE.Vector3) {
   position.x = THREE.MathUtils.clamp(position.x, WORLD_LIMITS.minX, WORLD_LIMITS.maxX)
   position.z = THREE.MathUtils.clamp(position.z, WORLD_LIMITS.minZ, WORLD_LIMITS.maxZ)
+
+  // The bridge is the intentional water crossing. Everywhere else, softly
+  // resolve the visitor onto the nearest bank so the pond remains inhabited
+  // space rather than an invisible floor they can walk across.
+  const onBridge = Math.abs(position.z + 3.4) < 1.34 && Math.abs(position.x) < 7.18
+  const insidePond = position.x > POND_LIMITS.minX - BODY_RADIUS
+    && position.x < POND_LIMITS.maxX + BODY_RADIUS
+    && position.z > POND_LIMITS.minZ - BODY_RADIUS
+    && position.z < POND_LIMITS.maxZ + BODY_RADIUS
+  if (insidePond && !onBridge) {
+    const bankDistances = [
+      { axis: 'x' as const, distance: Math.abs(position.x - (POND_LIMITS.minX - BODY_RADIUS)), value: POND_LIMITS.minX - BODY_RADIUS },
+      { axis: 'x' as const, distance: Math.abs(position.x - (POND_LIMITS.maxX + BODY_RADIUS)), value: POND_LIMITS.maxX + BODY_RADIUS },
+      { axis: 'z' as const, distance: Math.abs(position.z - (POND_LIMITS.minZ - BODY_RADIUS)), value: POND_LIMITS.minZ - BODY_RADIUS },
+      { axis: 'z' as const, distance: Math.abs(position.z - (POND_LIMITS.maxZ + BODY_RADIUS)), value: POND_LIMITS.maxZ + BODY_RADIUS },
+    ]
+    let nearest = bankDistances[0]
+    for (let index = 1; index < bankDistances.length; index += 1) {
+      if (bankDistances[index].distance < nearest.distance) nearest = bankDistances[index]
+    }
+    position[nearest.axis] = nearest.value
+  }
 
   for (const obstacle of OBSTACLES) {
     const dx = position.x - obstacle.x

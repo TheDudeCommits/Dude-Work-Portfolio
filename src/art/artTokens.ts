@@ -19,6 +19,13 @@ export const ART_PALETTE = {
   deepWater: '#203f42',
   paleWater: '#89aaa4',
   inkFieldClear: '#000000',
+  nightZenith: '#050810',
+  nightHorizon: '#142631',
+  nightMist: '#33484d',
+  moonCrimson: '#b44a46',
+  moonGlow: '#dc8b76',
+  firefly: '#e4bd68',
+  mapleCrimson: '#842f2e',
 } as const
 
 export type ArtPaletteRole = keyof typeof ART_PALETTE

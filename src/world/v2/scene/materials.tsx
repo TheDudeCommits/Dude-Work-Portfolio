@@ -181,6 +181,7 @@ export function ProjectInkMembrane({
       transparent
       uniforms={uniforms}
       vertexShader={portalVertex}
+      visible={active || focused}
     />
   )
 }

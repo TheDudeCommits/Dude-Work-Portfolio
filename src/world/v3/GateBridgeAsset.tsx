@@ -49,7 +49,6 @@ export function GateBridgeAsset({
   const styledAsset = useMemo(() => {
     const scene = gltf.scene.clone(true)
     const lodGroups = new Map<string, { high?: THREE.Object3D; low?: THREE.Object3D }>()
-    const pineObjects: THREE.Object3D[] = []
     const sourceMaterials = new Map<THREE.Mesh, THREE.Material[]>()
     scene.name = 'v3-gate-bridge-authored-asset'
     scene.traverse((object) => {
@@ -62,7 +61,6 @@ export function GateBridgeAsset({
         if (lodMatch[2] === '0') entry.high = object
         else entry.low = object
         lodGroups.set(lodMatch[1], entry)
-        if (/OldPine/i.test(object.name)) pineObjects.push(object)
       }
       if (!(object instanceof THREE.Mesh)) return
       object.geometry = object.geometry.clone()
@@ -73,13 +71,20 @@ export function GateBridgeAsset({
       if (high) high.visible = true
       if (low) low.visible = false
     })
-    return { lodGroups, pineObjects, scene, sourceMaterials }
+    return { lodGroups, scene, sourceMaterials }
   }, [gltf.scene])
   const styledScene = styledAsset.scene
 
   useLayoutEffect(() => {
     styledScene.traverse((object) => {
       if (NON_RENDER_PREFIX.test(object.name)) {
+        object.visible = false
+        return
+      }
+      // The old approach and garden-frame carriers read as opaque foreground
+      // slabs from the opening camera. Sculpted earth and the new living
+      // ecology own this threshold instead.
+      if (/SteppingApproach|GardenFrame/i.test(object.name)) {
         object.visible = false
         return
       }
@@ -132,22 +137,10 @@ export function GateBridgeAsset({
         low.visible = false
         return
       }
-      // The near garden-frame bamboo is a useful parallax wipe through the
-      // bridge, but becomes a faceted obstruction once the camera arrives at
-      // the sanctuary. Hand the final frame over to the painted bough layer.
-      if (/GardenFrame/i.test(lodName) && cameraWorldPosition.x > 3.5 && cameraWorldPosition.z < 8) {
+      if (/SteppingApproach|GardenFrame/i.test(lodName)) {
         high.visible = false
         low.visible = false
         return
-      }
-      if (/OldPine/i.test(lodName)) {
-        const pineDistanceSquared = (cameraWorldPosition.x + 8.65) ** 2
-          + (cameraWorldPosition.z + 6.3) ** 2
-        if (pineDistanceSquared < 49) {
-          high.visible = false
-          low.visible = false
-          return
-        }
       }
       high.getWorldPosition(lodWorldPosition)
       const screenCoverage = Number(high.userData.screen_coverage ?? 0.18)
@@ -156,9 +149,6 @@ export function GateBridgeAsset({
       high.visible = useHigh
       low.visible = !useHigh
     })
-    const nearPine = (cameraWorldPosition.x + 8.65) ** 2
-      + (cameraWorldPosition.z + 6.3) ** 2 < 49
-    if (nearPine) styledAsset.pineObjects.forEach((object) => { object.visible = false })
   }, -24)
 
   return (

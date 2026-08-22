@@ -1,7 +1,6 @@
 :root {
   color: #272825;
-  background:
-    #c9d0c5 url('/art/v3/mattes/mountain-valley.webp') center 64% / cover no-repeat;
+  background: #050810;
   font-family: serif;
   font-synthesis: none;
   text-rendering: geometricPrecision;
@@ -23,7 +22,7 @@ body,
 
 body {
   min-width: 320px;
-  background: #c9d0c5;
+  background: #050810;
 }
 
 button,
@@ -41,8 +40,7 @@ button {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background:
-    #c9d0c5 url('/art/v3/mattes/mountain-valley.webp') center 64% / cover no-repeat;
+  background: #050810;
   isolation: isolate;
 }
 
@@ -78,33 +76,6 @@ button {
   background-size: cover, 820px;
   opacity: .17;
   mix-blend-mode: multiply;
-}
-
-.foreground-ink-frame {
-  position: fixed;
-  z-index: 48;
-  inset: -1.5%;
-  pointer-events: none;
-  background: url('/art/v3/mattes/foreground-pine-frame.webp') center / 100% 100% no-repeat;
-  filter: saturate(.82) contrast(1.06);
-  opacity: clamp(0, calc(1.36 - var(--garden-depth) * 14), .96);
-  transform: translate3d(calc(var(--garden-depth) * -1.2vw), calc(var(--garden-depth) * -.7vh), 0)
-    scale(calc(1.015 + var(--garden-depth) * .08));
-  transition: opacity .7s ease-out;
-  will-change: opacity, transform;
-}
-
-.experience.is-project-court .foreground-ink-frame {
-  inset: -2% -2% auto;
-  height: 54vh;
-  background-position: center top;
-  background-size: 100vw 100vh;
-  filter: saturate(.58) contrast(1.2) brightness(.72);
-  -webkit-mask-image: linear-gradient(180deg, #000 0 58%, rgb(0 0 0 / 82%) 74%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 0 58%, rgb(0 0 0 / 82%) 74%, transparent 100%);
-  mix-blend-mode: multiply;
-  opacity: .44;
-  transform: translate3d(0, -1.5vh, 0) scale(1.04);
 }
 
 .cinematic-frame {
@@ -337,13 +308,13 @@ button {
   transition: background .35s ease, color .35s ease, opacity .8s ease, transform .8s ease;
 }
 
-.experience.is-cinematic-rail:not(.is-project-court) .sound-toggle {
+.experience.is-cinematic-rail:not(.is-deep-garden) .sound-toggle {
   opacity: .2;
   transform: scale(.86);
 }
 
-.experience.is-cinematic-rail:not(.is-project-court) .sound-toggle:hover,
-.experience.is-cinematic-rail:not(.is-project-court) .sound-toggle:focus-visible {
+.experience.is-cinematic-rail:not(.is-deep-garden) .sound-toggle:hover,
+.experience.is-cinematic-rail:not(.is-deep-garden) .sound-toggle:focus-visible {
   opacity: 1;
   transform: scale(1.06);
 }
@@ -460,11 +431,11 @@ button {
   transition: opacity .8s ease;
 }
 
-.experience.is-cinematic-rail:not(.is-project-court) .touch-joystick {
+.experience.is-cinematic-rail:not(.is-deep-garden) .touch-joystick {
   opacity: .16;
 }
 
-.experience.is-cinematic-rail:not(.is-project-court) .touch-joystick:active {
+.experience.is-cinematic-rail:not(.is-deep-garden) .touch-joystick:active {
   opacity: .9;
 }
 
@@ -735,6 +706,10 @@ button {
 @media (pointer: coarse), (max-width: 760px) {
   .touch-joystick {
     display: grid;
+  }
+
+  .experience.is-cinematic-rail:not(.is-deep-garden) .touch-joystick {
+    opacity: .72;
   }
 
   .touch-look-pad {

@@ -1,1 +1,2 @@
 {"id":"bgm_001","type":"bgm","path":".media/audio/bgm/bgm_001.webm","source":"ingested","description":"bamboo-flute.webm","provenance":{"provider":"local","from":"/Users/amir/Codex/Dashboard-Ink/public/assets/audio/bamboo-flute.webm"}}
+{"id":"sfx_001","type":"sfx","path":".media/audio/sfx/sfx_001.mp3","source":"ingested","description":"440604_6253486-hq.mp3","provenance":{"provider":"local","from":"https://cdn.freesound.org/previews/440/440604_6253486-hq.mp3"}}

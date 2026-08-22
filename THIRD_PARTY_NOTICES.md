@@ -15,6 +15,10 @@ The corresponding license texts are included with the installed packages and the
 - `public/assets/environment/ninomaru-teien-1k.hdr` — “Ninomaru Teien” by Greg Zaal, downloaded from Poly Haven and distributed under CC0 1.0. Source: https://polyhaven.com/a/ninomaru_teien
 - `public/assets/environment/rocks/rock-moss-set-02.glb` — “Rock Moss Set 02” by Kless Gyzen, downloaded from Poly Haven and distributed under CC0 1.0. Source: https://polyhaven.com/a/rock_moss_set_02. The runtime copy was joined, simplified, texture-limited, converted to WebP and packed as GLB with glTF Transform.
 
+## CC0 audio
+
+- `public/assets/audio/shizuoka-birds.mp3` — “singing birds in the forest” by Freesound user florianreichelt, recorded in Shizuoka, Japan and published under CC0 1.0. Source: https://freesound.org/people/florianreichelt/sounds/440604/. The runtime file is Freesound's official HQ MP3 preview; no audio edits were made.
+
 ## Project-provided and original media
 
 - `public/assets/audio/bamboo-flute.webm` was supplied by the project owner and previously used in Dashboard-Ink. The local media ledger records its source under `.media/`.

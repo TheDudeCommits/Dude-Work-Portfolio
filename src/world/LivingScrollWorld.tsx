@@ -1,6 +1,6 @@
 import { PerformanceMonitor } from '@react-three/drei'
 import { Canvas, useThree } from '@react-three/fiber'
-import { Suspense, useCallback, useEffect, useState } from 'react'
+import { Suspense, useCallback, useEffect } from 'react'
 import * as THREE from 'three'
 import { ART_PALETTE } from '../art/artTokens'
 import {
@@ -8,9 +8,10 @@ import {
   LivingSumiProvider,
   useLivingSumiMaterialAdapter,
 } from '../art/v3'
-import { FreeRoamRuntimeSystems, useFreeRoamStore } from './v2/runtime'
+import { FreeRoamRuntimeSystems } from './v2/runtime'
 import {
   LeanFreeRoamPlayer,
+  NightGardenEnvironment,
   V3_GATE_BRIDGE_ANCHORS,
   V3GateBridgeWorld,
 } from './v3'
@@ -104,11 +105,6 @@ function V3LivingScene({
   onReady,
   reducedMotion,
 }: LivingScrollWorldProps) {
-  const courtIsNear = useFreeRoamStore((state) => (
-    state.exploration.railProgress > 0.52
-    || (state.motion.position[0] > 3.5 && state.motion.position[2] < 2)
-  ))
-  const [courtActivated, setCourtActivated] = useState(courtIsNear)
   const adapter = useLivingSumiMaterialAdapter({
     fogStrength: 0.92,
     motionStrength: reducedMotion ? 0 : 0.035,
@@ -121,19 +117,16 @@ function V3LivingScene({
     requestAnimationFrame(onReady)
   }, [onReady])
 
-  useEffect(() => {
-    if (courtIsNear) setCourtActivated(true)
-  }, [courtIsNear])
-
   return (
     <>
       <WebGLContextBridge onContextLost={onContextLost} />
+      <NightGardenEnvironment reducedMotion={reducedMotion} />
       <V3GateBridgeWorld
         materialAdapter={adapter}
         onAssetReady={signalReady}
         reducedMotion={reducedMotion}
         showMatteCards={false}
-        showProjectCourt={courtActivated}
+        showProjectGarden
       />
       <GroundingWashes />
       <LeanFreeRoamPlayer
@@ -167,9 +160,9 @@ export function LivingScrollWorld({
   const handleCreated = useCallback(({ gl }: { gl: THREE.WebGLRenderer }) => {
     gl.outputColorSpace = THREE.SRGBColorSpace
     gl.toneMapping = THREE.NeutralToneMapping
-    gl.toneMappingExposure = 0.96
+    gl.toneMappingExposure = 0.88
     gl.shadowMap.enabled = false
-    gl.setClearColor(ART_PALETTE.mist, 0)
+    gl.setClearColor(ART_PALETTE.nightZenith, 1)
   }, [])
 
   return (
@@ -178,7 +171,7 @@ export function LivingScrollWorld({
       flat
       gl={{
         antialias: false,
-        alpha: true,
+        alpha: false,
         depth: true,
         powerPreference: 'high-performance',
         preserveDrawingBuffer: false,
@@ -188,7 +181,17 @@ export function LivingScrollWorld({
       shadows={false}
     >
       <Suspense fallback={null}>
-        <LivingSumiProvider reducedMotion={reducedMotion}>
+        <LivingSumiProvider
+          fogColor={ART_PALETTE.nightMist}
+          fogFar={96}
+          fogHeight={2.4}
+          fogHeightDensity={0.08}
+          fogNear={18}
+          fogOpacity={0.44}
+          keyDirection={[-0.42, 0.68, -0.6]}
+          paperColor={ART_PALETTE.mist}
+          reducedMotion={reducedMotion}
+        >
           <V3LivingScene
             active={active}
             onContextLost={onContextLost}

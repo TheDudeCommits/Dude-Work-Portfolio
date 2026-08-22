@@ -26,10 +26,15 @@ export const livingSumiVertexShader = /* glsl */ `
     // applied in local space before instancing so repeated foliage remains
     // coherent, while the low frequencies keep it cinematic rather than noisy.
     float windLoad = clamp(aSumiWind, 0.0, 1.0) * max(0.0, uWindResponse);
+    vec2 windOrigin = vec2(0.0);
+    #ifdef USE_INSTANCING
+      windOrigin = instanceMatrix[3].xz;
+    #endif
     float windPhase = uTime * 0.74
       + position.y * 0.43
       + position.x * 0.09
-      + position.z * 0.13;
+      + position.z * 0.13
+      + dot(windOrigin, vec2(0.17, 0.11));
     float windSweep = sin(windPhase) * 0.72 + sin(windPhase * 0.47 + 1.31) * 0.28;
     localPosition.x += windSweep * windLoad * uWindAmplitude;
     localPosition.z += cos(windPhase * 0.63) * windLoad * uWindAmplitude * 0.34;
@@ -56,6 +61,7 @@ export const livingSumiVertexShader = /* glsl */ `
 `
 
 export const livingSumiFragmentShader = /* glsl */ `
+  #include <common>
   #include <dithering_pars_fragment>
 
   uniform sampler2D uBrushTexture;

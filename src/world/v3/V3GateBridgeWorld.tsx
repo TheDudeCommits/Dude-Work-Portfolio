@@ -4,11 +4,11 @@ import { V3BaseEnvironment } from './BaseEnvironment'
 import {
   V3_GATE_BRIDGE_ANCHORS,
   V3_GATE_BRIDGE_ASSET_URL,
-  V3_PROJECT_COURT_FRAME_ASSET_URL,
 } from './composition'
+import { GardenEcology } from './GardenEcology'
 import { GateBridgeAsset } from './GateBridgeAsset'
 import { InkRingField, type InkRingFieldProps } from './InkRingField'
-import { ProjectCourt } from './ProjectCourt'
+import { ProjectGarden } from './ProjectGarden'
 import type { V3SumiMaterialAdapter, V3Vector3Tuple } from './types'
 import { WorldMatteCards } from './WorldMatteCards'
 
@@ -37,9 +37,10 @@ export interface V3GateBridgeWorldProps {
   ringOptions?: Omit<InkRingFieldProps, 'reducedMotion'>
   sceneRef?: RefObject<THREE.Group | null>
   showBaseEnvironment?: boolean
+  showGardenEcology?: boolean
   showInkRings?: boolean
   showMatteCards?: boolean
-  showProjectCourt?: boolean
+  showProjectGarden?: boolean
 }
 
 /**
@@ -59,9 +60,10 @@ export function V3GateBridgeWorld({
   ringOptions,
   sceneRef,
   showBaseEnvironment = true,
+  showGardenEcology = true,
   showInkRings = true,
   showMatteCards = true,
-  showProjectCourt = true,
+  showProjectGarden = true,
 }: V3GateBridgeWorldProps) {
   return (
     <group name="living-scroll-gate-bridge-v3">
@@ -80,15 +82,10 @@ export function V3GateBridgeWorld({
         />
       </Suspense>
       {showInkRings && <InkRingField {...ringOptions} reducedMotion={reducedMotion} />}
-      {showProjectCourt && (
+      {showGardenEcology && <GardenEcology reducedMotion={reducedMotion} />}
+      {showProjectGarden && (
         <Suspense fallback={<HiddenLoadingFallback />}>
-          <GateBridgeAsset
-            assetUrl={V3_PROJECT_COURT_FRAME_ASSET_URL}
-            materialAdapter={materialAdapter}
-            position={V3_GATE_BRIDGE_ANCHORS.projectCourt}
-            reducedMotion={reducedMotion}
-          />
-          <ProjectCourt materialAdapter={materialAdapter} reducedMotion={reducedMotion} />
+          <ProjectGarden materialAdapter={materialAdapter} reducedMotion={reducedMotion} />
         </Suspense>
       )}
       {showMatteCards && (

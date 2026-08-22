@@ -6,6 +6,7 @@ const root = process.cwd()
 const activeRoots = [
   'src/art',
   'src/world/v2',
+  'src/world/v3',
   'src/world/LivingScrollWorld.tsx',
 ]
 
