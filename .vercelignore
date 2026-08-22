@@ -1,0 +1,10 @@
+.git/
+.media/
+.playwright-cli/
+.vercel/
+art/
+dist/
+docs/
+node_modules/
+output/
+*.tsbuildinfo
