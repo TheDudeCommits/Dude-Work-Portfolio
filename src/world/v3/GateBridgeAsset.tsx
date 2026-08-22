@@ -84,7 +84,7 @@ export function GateBridgeAsset({
       // The old approach and garden-frame carriers read as opaque foreground
       // slabs from the opening camera. Sculpted earth and the new living
       // ecology own this threshold instead.
-      if (/SteppingApproach|GardenFrame/i.test(object.name)) {
+      if (/SteppingApproach|GardenFrame|RockComposition|RopeBells/i.test(object.name)) {
         object.visible = false
         return
       }
@@ -137,7 +137,7 @@ export function GateBridgeAsset({
         low.visible = false
         return
       }
-      if (/SteppingApproach|GardenFrame/i.test(lodName)) {
+      if (/SteppingApproach|GardenFrame|RockComposition|RopeBells/i.test(lodName)) {
         high.visible = false
         low.visible = false
         return

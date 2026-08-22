@@ -26,6 +26,15 @@ export const ART_PALETTE = {
   moonGlow: '#dc8b76',
   firefly: '#e4bd68',
   mapleCrimson: '#842f2e',
+  nightEarth: '#111a1c',
+  nightEarthLift: '#26363a',
+  nightStone: '#3f4b4d',
+  moonlitStone: '#647173',
+  nightMoss: '#20352e',
+  gardenGreen: '#48624b',
+  moonGreen: '#8ca382',
+  lanternAmber: '#f0aa62',
+  inkFog: '#1c2c32',
 } as const
 
 export type ArtPaletteRole = keyof typeof ART_PALETTE

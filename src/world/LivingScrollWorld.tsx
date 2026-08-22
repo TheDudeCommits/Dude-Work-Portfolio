@@ -10,6 +10,7 @@ import {
 } from '../art/v3'
 import { FreeRoamRuntimeSystems } from './v2/runtime'
 import {
+  CinematicNightLayer,
   LeanFreeRoamPlayer,
   NightGardenEnvironment,
   V3_GATE_BRIDGE_ANCHORS,
@@ -128,6 +129,7 @@ function V3LivingScene({
         showMatteCards={false}
         showProjectGarden
       />
+      <CinematicNightLayer quality="auto" reducedMotion={reducedMotion} />
       <GroundingWashes />
       <LeanFreeRoamPlayer
         active={active}

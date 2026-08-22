@@ -6,6 +6,7 @@ import {
   V3_GATE_BRIDGE_ASSET_URL,
 } from './composition'
 import { GardenEcology } from './GardenEcology'
+import { GardenRooms } from './GardenRooms'
 import { GateBridgeAsset } from './GateBridgeAsset'
 import { InkRingField, type InkRingFieldProps } from './InkRingField'
 import { ProjectGarden } from './ProjectGarden'
@@ -38,6 +39,7 @@ export interface V3GateBridgeWorldProps {
   sceneRef?: RefObject<THREE.Group | null>
   showBaseEnvironment?: boolean
   showGardenEcology?: boolean
+  showGardenRooms?: boolean
   showInkRings?: boolean
   showMatteCards?: boolean
   showProjectGarden?: boolean
@@ -61,6 +63,7 @@ export function V3GateBridgeWorld({
   sceneRef,
   showBaseEnvironment = true,
   showGardenEcology = true,
+  showGardenRooms = true,
   showInkRings = true,
   showMatteCards = true,
   showProjectGarden = true,
@@ -69,6 +72,7 @@ export function V3GateBridgeWorld({
     <group name="living-scroll-gate-bridge-v3">
       <CompositionAnchors />
       {showBaseEnvironment && <V3BaseEnvironment materialAdapter={materialAdapter} />}
+      {showGardenRooms && <GardenRooms reducedMotion={reducedMotion} />}
       <Suspense fallback={<HiddenLoadingFallback />}>
         <GateBridgeAsset
           assetUrl={assetUrl}

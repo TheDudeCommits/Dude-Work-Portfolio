@@ -12,7 +12,7 @@ export const V3_PROJECT_COURT_FRAME_ASSET_URL = '/art/v3/project-court/project-c
  * authoring converge on the same composition.
  */
 export const V3_GATE_BRIDGE_ANCHORS = {
-  spawn: [-6.8, 2.32, 27.8] as V3Vector3Tuple,
+  spawn: [-6.8, 1.12, 27.8] as V3Vector3Tuple,
   threshold: [0, 1.05, 13.8] as V3Vector3Tuple,
   toriiFocus: [0, 4.65, 11.7] as V3Vector3Tuple,
   pondReveal: [-2.8, 0.18, 0.6] as V3Vector3Tuple,

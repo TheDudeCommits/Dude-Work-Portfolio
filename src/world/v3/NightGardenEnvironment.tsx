@@ -228,7 +228,7 @@ function BloodMoon({ reducedMotion }: { reducedMotion: boolean }) {
   }, -100)
 
   return (
-    <group name="V3_VermilionMoon" position={[22, 28, -62]} ref={root}>
+    <group name="V3_VermilionMoon" position={[31, 27, -62]} ref={root}>
       <mesh renderOrder={-6} scale={1.72}>
         <circleGeometry args={[7.4, 72]} />
         <shaderMaterial

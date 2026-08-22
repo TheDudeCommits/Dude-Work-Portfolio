@@ -38,7 +38,15 @@ export { InkRingField } from './InkRingField'
 export type { InkRingFieldProps } from './InkRingField'
 export { GardenEcology } from './GardenEcology'
 export type { GardenEcologyProps } from './GardenEcology'
+export { GardenRooms } from './GardenRooms'
+export type { GardenRoomsProps } from './GardenRooms'
 export { NightGardenEnvironment } from './NightGardenEnvironment'
+export { CinematicNightLayer } from './CinematicNightLayer'
+export type {
+  CinematicLantern,
+  CinematicNightLayerProps,
+  CinematicNightQuality,
+} from './CinematicNightLayer'
 export { ProjectGarden } from './ProjectGarden'
 export type { ProjectGardenProps } from './ProjectGarden'
 export { ProjectCourt } from './ProjectCourt'

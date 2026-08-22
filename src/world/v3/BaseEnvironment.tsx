@@ -3,11 +3,17 @@ import * as THREE from 'three'
 import type { V3MaterialRequest, V3SumiMaterialAdapter } from './types'
 
 function sculptedGroundHeight(x: number, z: number) {
-  const broad = Math.sin(x * 0.23 + z * 0.11) * 0.055
-    + Math.cos(z * 0.19 - x * 0.08) * 0.035
-  const outerBank = THREE.MathUtils.smoothstep(Math.abs(x), 9, 18) * 0.34
-  const thresholdLift = THREE.MathUtils.smoothstep(z, 6, 24) * 0.055
-  return broad + outerBank + thresholdLift
+  const broad = Math.sin(x * 0.19 + z * 0.12) * 0.075
+    + Math.cos(z * 0.17 - x * 0.09) * 0.052
+  const sideBank = THREE.MathUtils.smoothstep(Math.abs(x), 7.5, 18) * 0.28
+  const arrivalBank = THREE.MathUtils.smoothstep(z, 8, 29) * 0.12
+  const farBank = (1 - THREE.MathUtils.smoothstep(z, -25, -12)) * 0.18
+  const pathHollow = Math.exp(-((x / 3.4) ** 2))
+    * THREE.MathUtils.smoothstep(z, 7, 26)
+    * 0.06
+  const westCourt = Math.exp(-(((x + 10.4) / 5.6) ** 2 + ((z + 7.4) / 7.5) ** 2)) * 0.08
+  const eastGrove = Math.exp(-(((x - 12.2) / 6.8) ** 2 + ((z + 8.8) / 7.8) ** 2)) * 0.1
+  return broad + sideBank + arrivalBank + farBank + westCourt + eastGrove - pathHollow
 }
 
 const GARDEN_PATH_LOOPS = [
@@ -72,15 +78,26 @@ function distanceToGardenPaths(x: number, z: number) {
 }
 
 function inPond(x: number, z: number) {
-  return x > -6.35 && x < 6.35 && z > -10.5 && z < 5.25
+  const northBasin = (x / 6.35) ** 2 + ((z - 1.25) / 4.35) ** 2 < 1
+  const southBasin = (x / 6.55) ** 2 + ((z + 7.25) / 4.15) ** 2 < 1
+  const bridgeChannel = (x / 5.8) ** 2 + ((z + 3.35) / 1.45) ** 2 < 1
+  const bankNoise = Math.sin(x * 1.37 + z * 0.64) * 0.18
+    + Math.sin(z * 1.91 - x * 0.43) * 0.09
+  const irregularNorth = (x / (6.28 + bankNoise)) ** 2
+    + ((z - 1.2) / (4.28 - bankNoise * 0.35)) ** 2 < 1
+  const irregularSouth = (x / (6.46 - bankNoise * 0.4)) ** 2
+    + ((z + 7.2) / (4.05 + bankNoise)) ** 2 < 1
+  return northBasin && irregularNorth
+    || southBasin && irregularSouth
+    || bridgeChannel
 }
 
 function createGroundCarrierGeometry() {
   const columns = 33
   const rows = 49
-  const width = 72
-  const depth = 68
-  const minZ = -28
+  const width = 58
+  const depth = 64
+  const minZ = -26
   const positions = new Float32Array(columns * rows * 3)
   const colors = new Float32Array(columns * rows * 4)
   const uvs = new Float32Array(columns * rows * 2)

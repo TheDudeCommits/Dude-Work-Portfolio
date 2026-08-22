@@ -397,7 +397,7 @@ function App() {
     window.__DUDE_WORK_DEBUG__ = {
       interact: () => freeRoamTouch.interact(),
       rail: (progress) => freeRoamCommands.resumeCinematicRail(progress),
-      reset: () => freeRoamCommands.teleport([-6.8, 2.32, 27.8]),
+      reset: () => freeRoamCommands.teleport([-6.8, 1.12, 27.8]),
       snapshot: getFreeRoamSnapshot,
       teleport: freeRoamCommands.teleport,
     }
