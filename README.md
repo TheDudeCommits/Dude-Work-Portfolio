@@ -1,17 +1,24 @@
-# Dude.Work — Living Ink Portfolio
+# Dude.Work — Living Ink Journey
 
-An original, responsive portfolio for Dude.Work. It preserves the interaction language of the Liam Bennet reference—full-canvas desktop previews, a compact project index, editorial work pages, a full-screen menu, masonry About page, and sparse Contact page—then redraws the entire experience in the established Dude.work Japanese sumi-e system.
+A wordless Three.js/WebGL portfolio experienced as a walk through a living sumi-e garden. The visitor begins outside a torii, follows a lantern-lit stone path through animated water, mist, pigment and foliage, then reaches a temple whose shoji doors reveal nine project portals.
 
-## Included
+## Experience
 
-- Ten supplied project artworks, optimized to WebP for delivery
-- Desktop hover-to-preview index with image parallax and ink-wash reveals
-- Mobile two-column project atlas
-- Animated full-screen navigation
-- Responsive project routes under `/work/:slug`
-- Editorial About and Contact routes
-- Kozo washi material, Living Ink font, monochrome pigment treatment, and restrained vermilion state marks
-- Reduced-motion support, keyboard focus states, and semantic page structure
+- Procedural torii, temple, mountains, pines, bamboo, rocks and lanterns
+- Custom GLSL living-ink water and breathing-mist materials
+- Keyboard, mouse, wheel and responsive touch controls
+- Spatially rising ambient music sourced from the existing Dude.Work dashboard
+- Automatic shoji-door reveal and nine clickable project portals
+- Wordless visual interface with symbolic audio, journey and social controls
+- Responsive desktop and mobile sanctuary compositions
+- Adaptive pixel density, reduced-motion support and WebGL context diagnostics
+
+## Controls
+
+- Move: `WASD`, arrow keys, mouse wheel or the touch joystick
+- Look: pointer/touch drag
+- Move faster: `Shift`
+- Open a project: select its artwork inside the sanctuary
 
 ## Local development
 
@@ -27,8 +34,6 @@ npm run lint
 npm run build
 ```
 
-## Notes
+## Implementation notes
 
-The contact form is intentionally backend-free: it prepares an email draft through `mailto:hello@dude.work`. Replace that address or wire a form provider before treating it as a server-delivered contact channel.
-
-The project imagery and Living Ink assets are project-owned/user-supplied material. Shippori Mincho is provided through Fontsource.
+The environment is original procedural geometry and shader work. The linked reference experiences were used only as creative direction; no source code or artwork was copied from Kage or the other benchmark sites. Project artwork and the bamboo-flute recording are user-provided assets. See `THIRD_PARTY_NOTICES.md` for dependency and asset provenance.

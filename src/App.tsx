@@ -1,495 +1,247 @@
+import { GitFork, Mail, Volume2, VolumeX } from 'lucide-react'
 import {
-  createContext,
-  type AnchorHTMLAttributes,
   type CSSProperties,
-  type FormEvent,
-  type PointerEvent,
+  type PointerEvent as ReactPointerEvent,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react'
-import { projectPath, projects, type Project } from './projects'
+import { projects } from './projects'
+import type { JourneyInput } from './world/types'
+import { PortfolioWorld } from './world/World'
 
-type Navigate = (path: string) => void
-
-const RouterContext = createContext<Navigate>(() => undefined)
-
-function usePathname() {
-  const [pathname, setPathname] = useState(() => window.location.pathname)
-
-  useEffect(() => {
-    const handlePopState = () => setPathname(window.location.pathname)
-    window.addEventListener('popstate', handlePopState)
-    return () => window.removeEventListener('popstate', handlePopState)
-  }, [])
-
-  const navigate = useCallback((path: string) => {
-    if (path === window.location.pathname) {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-      return
+declare global {
+  interface Window {
+    __DUDE_WORK_DIAGNOSTICS__?: {
+      entered: boolean
+      progress: number
+      ready: boolean
+      webglContextLost: boolean
     }
-    window.history.pushState({}, '', path)
-    setPathname(path)
-  }, [])
-
-  return { navigate, pathname }
+  }
 }
 
-function RouteLink({ href = '/', onClick, ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) {
-  const navigate = useContext(RouterContext)
-  const isLocal = href.startsWith('/')
-
+function ToriiSigil() {
   return (
-    <a
-      {...props}
-      href={href}
-      onClick={(event) => {
-        onClick?.(event)
-        if (
-          event.defaultPrevented
-          || !isLocal
-          || event.button !== 0
-          || event.metaKey
-          || event.ctrlKey
-          || event.shiftKey
-          || event.altKey
-        ) return
-        event.preventDefault()
-        navigate(href)
-      }}
-    />
+    <svg aria-hidden="true" viewBox="0 0 180 180">
+      <path d="M39 48c30 4 72 4 102 0" />
+      <path d="M28 36c37 6 87 6 124 0" />
+      <path d="M48 59h84" />
+      <path d="M55 57v78M125 57v78" />
+      <path d="M45 138h22M113 138h22" />
+      <circle cx="90" cy="91" r="62" />
+    </svg>
   )
 }
 
-function InkSeal({ inverted = false }: { inverted?: boolean }) {
+function EntryVeil({ onEnter, ready }: { onEnter: () => void; ready: boolean }) {
   return (
-    <span className={`ink-seal${inverted ? ' ink-seal--inverted' : ''}`} aria-hidden="true">
-      <span>DW</span>
-    </span>
-  )
-}
-
-function Header({ menuOpen, onMenuToggle }: { menuOpen: boolean; onMenuToggle: () => void }) {
-  return (
-    <header className="site-header">
-      <RouteLink className="wordmark" href="/" aria-label="Dude.Work home">
-        <span className="wordmark__main">dude.work</span>
-        <span className="wordmark__echo" aria-hidden="true">living ink</span>
-      </RouteLink>
+    <div className={`entry-veil${ready ? ' is-ready' : ''}`}>
+      <div className="entry-veil__wash" aria-hidden="true" />
       <button
-        className="menu-toggle"
+        aria-label="Enter the garden"
+        className="entry-sigil"
+        disabled={!ready}
+        onClick={onEnter}
         type="button"
-        aria-controls="site-menu"
-        aria-expanded={menuOpen}
-        onClick={onMenuToggle}
       >
-        <span className="menu-toggle__brush" aria-hidden="true" />
-        <span className="menu-toggle__label">{menuOpen ? 'close' : 'menu'}</span>
+        <span className="entry-sigil__halo" aria-hidden="true" />
+        <ToriiSigil />
+        <span className="entry-sigil__pulse entry-sigil__pulse--one" aria-hidden="true" />
+        <span className="entry-sigil__pulse entry-sigil__pulse--two" aria-hidden="true" />
       </button>
-    </header>
+      <div className="entry-veil__inkline" aria-hidden="true" />
+    </div>
   )
 }
 
-function MenuOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
-  useEffect(() => {
-    if (!open) return
-    document.body.classList.add('menu-is-open')
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      document.body.classList.remove('menu-is-open')
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [onClose, open])
-
-  const navItems = [
-    ['00.', 'home', '/'],
-    ['01.', 'about', '/about'],
-    ['02.', 'contact', '/contact'],
-    ['03.', 'works', projectPath(projects[0])],
-  ] as const
-
+function FootstepHint({ visible }: { visible: boolean }) {
   return (
-    <aside id="site-menu" className={`menu-overlay${open ? ' is-open' : ''}`} aria-hidden={!open}>
-      <Header menuOpen onMenuToggle={onClose} />
-      <div className="menu-overlay__wash" aria-hidden="true" />
-      <div className="menu-overlay__projects" aria-label="Selected work">
-        {projects.map((project, index) => (
-          <RouteLink
-            href={projectPath(project)}
-            key={project.slug}
-            onClick={onClose}
-            tabIndex={open ? 0 : -1}
-            style={{ '--menu-row': index } as CSSProperties}
-          >
-            <span>{String(index + 1).padStart(2, '0')}</span>
-            <span>{project.title}</span>
-          </RouteLink>
-        ))}
-      </div>
-      <nav className="menu-overlay__nav" aria-label="Primary navigation">
-        {navItems.map(([number, label, href], index) => (
-          <RouteLink
-            href={href}
-            key={label}
-            onClick={onClose}
-            tabIndex={open ? 0 : -1}
-            style={{ '--menu-row': index } as CSSProperties}
-          >
-            <span>{number}</span>
-            <span>{label}</span>
-          </RouteLink>
-        ))}
-      </nav>
-      <p className="menu-overlay__note">digital worlds · useful systems · one decisive mark</p>
-    </aside>
+    <div aria-hidden="true" className={`footstep-hint${visible ? ' is-visible' : ''}`}>
+      <span />
+      <span />
+      <i />
+    </div>
   )
 }
 
-function HomePage({ menuOpen, onMenuToggle }: { menuOpen: boolean; onMenuToggle: () => void }) {
-  const [activeProject, setActiveProject] = useState<number | null>(null)
-  const [pointer, setPointer] = useState({ x: 50, y: 50 })
+function TouchJoystick({ input }: { input: React.MutableRefObject<JourneyInput> }) {
+  const root = useRef<HTMLDivElement>(null)
+  const knob = useRef<HTMLSpanElement>(null)
 
-  const handlePointerMove = (event: PointerEvent<HTMLElement>) => {
-    const bounds = event.currentTarget.getBoundingClientRect()
-    setPointer({
-      x: ((event.clientX - bounds.left) / bounds.width) * 100,
-      y: ((event.clientY - bounds.top) / bounds.height) * 100,
-    })
-  }
+  const update = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!root.current) return
+    const bounds = root.current.getBoundingClientRect()
+    const dx = (event.clientX - (bounds.left + bounds.width / 2)) / (bounds.width * 0.36)
+    const dy = (event.clientY - (bounds.top + bounds.height / 2)) / (bounds.height * 0.36)
+    const length = Math.max(1, Math.hypot(dx, dy))
+    const x = dx / length
+    const y = dy / length
+    input.current.strafe = x
+    input.current.forward = -y
+    if (knob.current) knob.current.style.transform = `translate3d(${x * 26}px, ${y * 26}px, 0)`
+  }, [input])
+
+  const reset = useCallback(() => {
+    input.current.strafe = 0
+    input.current.forward = 0
+    if (knob.current) knob.current.style.transform = 'translate3d(0, 0, 0)'
+  }, [input])
 
   return (
-    <main
-      className={`home-page${activeProject !== null ? ' has-active-project' : ''}`}
-      onPointerMove={handlePointerMove}
-      style={{
-        '--pointer-x': `${pointer.x}%`,
-        '--pointer-y': `${pointer.y}%`,
-        '--parallax-x': `${(pointer.x - 50) * -0.08}px`,
-        '--parallax-y': `${(pointer.y - 50) * -0.06}px`,
-      } as CSSProperties}
+    <div
+      aria-label="Movement control"
+      className="touch-joystick"
+      onPointerCancel={reset}
+      onPointerDown={(event) => {
+        event.currentTarget.setPointerCapture(event.pointerId)
+        update(event)
+      }}
+      onPointerMove={(event) => {
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) update(event)
+      }}
+      onPointerUp={(event) => {
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
+        reset()
+      }}
+      ref={root}
+      role="application"
     >
-      <div className="home-page__field" aria-hidden="true" />
-      <div className="home-previews" aria-hidden="true">
-        {projects.map((project, index) => (
-          <figure className={`home-preview${activeProject === index ? ' is-active' : ''}`} key={project.slug}>
-            <img src={project.image} alt="" draggable="false" />
-            <span className="home-preview__grain" />
-          </figure>
-        ))}
-      </div>
-      <Header menuOpen={menuOpen} onMenuToggle={onMenuToggle} />
-
-      <section className="desktop-index" aria-label="Selected work">
-        <div className="desktop-index__head" aria-hidden="true">
-          <span>work</span>
-          <span>with</span>
-          <span>field</span>
-        </div>
-        <ol>
-          {projects.map((project, index) => (
-            <li key={project.slug} style={{ '--row': index } as CSSProperties}>
-              <RouteLink
-                href={projectPath(project)}
-                onMouseEnter={() => setActiveProject(index)}
-                onMouseLeave={() => setActiveProject(null)}
-                onFocus={() => setActiveProject(index)}
-                onBlur={() => setActiveProject(null)}
-                aria-label={`${project.title}, ${project.partner}, ${project.discipline}`}
-              >
-                <span>{project.title}</span>
-                <span>{project.partner}</span>
-                <span>{project.discipline}</span>
-              </RouteLink>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section className="mobile-index" aria-label="Selected work">
-        {projects.map((project, index) => (
-          <RouteLink
-            className="mobile-project"
-            href={projectPath(project)}
-            key={project.slug}
-            style={{ '--row': index } as CSSProperties}
-          >
-            <span className="mobile-project__title">{project.title}</span>
-            <span className="mobile-project__image">
-              <img src={project.image} alt={`${project.title} project preview`} loading={index > 3 ? 'lazy' : 'eager'} />
-            </span>
-            <span className="mobile-project__discipline">{project.discipline}</span>
-          </RouteLink>
-        ))}
-      </section>
-      <div className="home-page__footer" aria-hidden="true">
-        <span>Berlin · 2026</span>
-        <InkSeal />
-      </div>
-    </main>
+      <span aria-hidden="true" className="touch-joystick__ring" />
+      <span aria-hidden="true" className="touch-joystick__knob" ref={knob} />
+    </div>
   )
 }
 
-function useScrollShift() {
-  const [shift, setShift] = useState(0)
-  const frame = useRef<number | null>(null)
-
-  useEffect(() => {
-    const onScroll = () => {
-      if (frame.current !== null) return
-      frame.current = window.requestAnimationFrame(() => {
-        setShift(Math.min(window.scrollY * 0.075, 72))
-        frame.current = null
-      })
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      if (frame.current !== null) window.cancelAnimationFrame(frame.current)
-    }
-  }, [])
-
-  return shift
-}
-
-function ProjectPage({ menuOpen, onMenuToggle, project }: {
-  menuOpen: boolean
-  onMenuToggle: () => void
-  project: Project
+function SymbolicHud({
+  input,
+  muted,
+  onMuteToggle,
+  progress,
+}: {
+  input: React.MutableRefObject<JourneyInput>
+  muted: boolean
+  onMuteToggle: () => void
+  progress: number
 }) {
-  const shift = useScrollShift()
-  const index = projects.findIndex((item) => item.slug === project.slug)
-  const next = projects[(index + 1) % projects.length]
-
   return (
-    <main className="project-page">
-      <div className="project-page__atmosphere" aria-hidden="true" />
-      <Header menuOpen={menuOpen} onMenuToggle={onMenuToggle} />
-      <article>
-        <header className="project-intro">
-          <div className="project-intro__meta">
-            <span>{project.partner}</span>
-            <span>{project.discipline}</span>
-          </div>
-          <h1>{project.title}</h1>
-        </header>
-
-        <figure className="project-hero">
-          <img
-            src={project.image}
-            alt={`${project.title} interface`}
-            style={{ transform: `translate3d(0, ${shift}px, 0) scale(1.055)` }}
-          />
-          <span className="project-hero__edge" aria-hidden="true" />
-        </figure>
-
-        <section className="project-statement">
-          <h2>{project.statement}</h2>
-          <p><span aria-hidden="true" />{project.title}</p>
-        </section>
-
-        <section className="project-about">
-          <p className="section-label"><span aria-hidden="true" />about</p>
-          <div className="project-about__copy">
-            <p>{project.about[0]}</p>
-            <p>{project.about[1]}</p>
-          </div>
-        </section>
-
-        <section className="project-deliverables">
-          <p className="section-label"><span aria-hidden="true" />deliverables</p>
-          <ol>
-            {project.deliverables.map((deliverable, itemIndex) => (
-              <li key={deliverable}>
-                <span>{String(itemIndex + 1).padStart(2, '0')}</span>
-                <span>{deliverable}</span>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section className="project-gallery" aria-label={`${project.title} detail views`}>
-          {['left', 'center', 'right'].map((position) => (
-            <figure key={position} data-position={position}>
-              <img src={project.image} alt="" loading="lazy" />
-            </figure>
-          ))}
-        </section>
-
-        <div className="project-actions">
-          <a className="launch-link" href={project.href} target="_blank" rel="noreferrer">
-            <span>visit live project</span>
-            <span aria-hidden="true">↗</span>
-          </a>
-        </div>
-
-        <RouteLink className="next-project" href={projectPath(next)}>
-          <span><i aria-hidden="true" />next</span>
-          <strong>{next.title}</strong>
-        </RouteLink>
-      </article>
-      <Footer />
-    </main>
+    <div className="symbolic-hud" style={{ '--journey-progress': progress } as CSSProperties}>
+      <div aria-hidden="true" className="identity-seal" />
+      <button
+        aria-label={muted ? 'Unmute ambient music' : 'Mute ambient music'}
+        className="sound-toggle"
+        onClick={onMuteToggle}
+        type="button"
+      >
+        {muted ? <VolumeX /> : <Volume2 />}
+        <span aria-hidden="true" />
+      </button>
+      <div aria-hidden="true" className="journey-stroke"><i /></div>
+      <FootstepHint visible={progress < 0.025} />
+      <TouchJoystick input={input} />
+      <nav aria-label="Social links" className={`social-glyphs${progress > 0.86 ? ' is-visible' : ''}`}>
+        <a aria-label="GitHub" href="https://github.com/TheDudeCommits" rel="noreferrer" target="_blank">
+          <GitFork />
+        </a>
+        <a aria-label="Email" href="mailto:hello@dude.work">
+          <Mail />
+        </a>
+      </nav>
+    </div>
   )
 }
 
-function AboutPage({ menuOpen, onMenuToggle }: { menuOpen: boolean; onMenuToggle: () => void }) {
+function AccessibleProjectLinks() {
   return (
-    <main className="editorial-page about-page">
-      <Header menuOpen={menuOpen} onMenuToggle={onMenuToggle} />
-      <section className="about-intro">
-        <p>I build digital products as living systems: useful enough to depend on, strange enough to remember. The work moves between financial tools, operational AI, interactive worlds and playful experiments.</p>
-        <p>Dude.Work is the thread connecting them. Each project begins with the real behavior and ends with a singular visual language—technology, motion, sound and story working as one experience.</p>
-      </section>
-
-      <section className="about-gallery" aria-label="Selected project atlas">
-        {projects.map((project, index) => (
-          <RouteLink href={projectPath(project)} key={project.slug} style={{ '--row': index } as CSSProperties}>
-            <img src={project.image} alt={`${project.title} project`} loading={index > 3 ? 'lazy' : 'eager'} />
-            <span>{String(index + 1).padStart(2, '0')} · {project.title}</span>
-          </RouteLink>
-        ))}
-      </section>
-
-      <section className="about-ledger">
-        <div>
-          <p>[ practice ]</p>
-          <ul>
-            <li>Creative technologist, Dude.Work {`{ now }`}</li>
-            <li>Product systems &amp; operational AI</li>
-            <li>Interactive worlds &amp; browser games</li>
-            <li>Finance, data &amp; decision interfaces</li>
-            <li>Original art, motion &amp; sound</li>
-          </ul>
-        </div>
-        <div>
-          <p>[ principles ]</p>
-          <ul>
-            <li>Truth before theatre</li>
-            <li>One decisive mark</li>
-            <li>State is the source of truth</li>
-            <li>Motion with consequence</li>
-            <li>Ship the whole story</li>
-          </ul>
-        </div>
-        <div>
-          <p>[ services ]</p>
-          <ul>
-            <li>Creative direction</li>
-            <li>Product design</li>
-            <li>AI systems</li>
-            <li>3D &amp; interactive</li>
-            <li>Full-stack delivery</li>
-          </ul>
-        </div>
-      </section>
-      <Footer />
-    </main>
-  )
-}
-
-function ContactPage({ menuOpen, onMenuToggle }: { menuOpen: boolean; onMenuToggle: () => void }) {
-  const [status, setStatus] = useState('')
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    const name = String(data.get('name') ?? '')
-    const email = String(data.get('email') ?? '')
-    const message = String(data.get('message') ?? '')
-    const subject = encodeURIComponent(`Dude.Work project enquiry from ${name}`)
-    const body = encodeURIComponent(`${message}\n\nFrom: ${name}\nEmail: ${email}`)
-    setStatus('Email draft prepared in your mail app.')
-    window.location.href = `mailto:hello@dude.work?subject=${subject}&body=${body}`
-  }
-
-  return (
-    <main className="editorial-page contact-page">
-      <Header menuOpen={menuOpen} onMenuToggle={onMenuToggle} />
-      <section className="contact-intro">
-        <h1>Bring the difficult idea.<br />We’ll find its one clear form.</h1>
-      </section>
-      <section className="contact-layout">
-        <form onSubmit={handleSubmit}>
-          <label>
-            <span>name</span>
-            <input name="name" type="text" autoComplete="name" placeholder="Your name" required />
-          </label>
-          <label>
-            <span>email</span>
-            <input name="email" type="email" autoComplete="email" placeholder="you@example.com" required />
-          </label>
-          <label>
-            <span>your message</span>
-            <textarea name="message" placeholder="Tell me what you want to make…" required />
-          </label>
-          <button type="submit"><span>prepare email</span><span aria-hidden="true">↗</span></button>
-          <p className="contact-status" aria-live="polite">{status || 'This prepares a message in your email app.'}</p>
-        </form>
-        <aside>
-          <p>Connect</p>
-          <a href="https://github.com/TheDudeCommits" target="_blank" rel="noreferrer">GitHub ↗</a>
-          <a href="mailto:hello@dude.work">Email ↗</a>
-          <RouteLink href="/about">About the practice →</RouteLink>
-        </aside>
-      </section>
-      <section className="contact-closing">
-        <InkSeal />
-        <p>Have an idea that does not fit neatly into a category? Good. Those are usually the ones worth building.</p>
-      </section>
-      <Footer />
-    </main>
-  )
-}
-
-function Footer() {
-  return (
-    <footer className="site-footer">
-      <span>© 2026 Dude.Work</span>
-      <span>made with paper, code &amp; living ink</span>
-    </footer>
+    <nav aria-label="Projects" className="sr-only">
+      {projects.map((project) => (
+        <a href={project.href} key={project.slug} rel="noreferrer" target="_blank">{project.title}</a>
+      ))}
+    </nav>
   )
 }
 
 function App() {
-  const { navigate, pathname } = usePathname()
-  const [menuOpen, setMenuOpen] = useState(false)
-  const cleanPath = pathname !== '/' ? pathname.replace(/\/$/, '') : '/'
+  const audio = useRef<HTMLAudioElement>(null)
+  const input = useRef<JourneyInput>({ forward: 0, lookX: 0, lookY: 0, strafe: 0, wheel: 0 })
+  const progressRef = useRef(0)
+  const [contextLost, setContextLost] = useState(false)
+  const [entered, setEntered] = useState(false)
+  const [muted, setMuted] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [ready, setReady] = useState(false)
+  const reducedMotion = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, [])
 
-  const project = useMemo(
-    () => projects.find((item) => projectPath(item) === cleanPath),
-    [cleanPath],
-  )
+  const handleEnter = useCallback(() => {
+    if (!ready) return
+    const player = audio.current
+    if (player) {
+      player.volume = 0.025
+      void player.play().catch(() => undefined)
+    }
+    setEntered(true)
+  }, [ready])
 
   useEffect(() => {
-    setMenuOpen(false)
-    window.scrollTo(0, 0)
-    const pageTitle = project?.title
-      ?? (cleanPath === '/about' ? 'About' : cleanPath === '/contact' ? 'Contact' : 'Living Ink')
-    document.title = `${pageTitle} — Dude.Work`
-  }, [cleanPath, project])
+    const player = audio.current
+    if (!player) return
+    const distanceGain = THREE_SMOOTHSTEP(progress, 0.02, 0.83)
+    player.volume = muted ? 0 : Math.min(0.58, 0.025 + distanceGain * 0.52)
+  }, [muted, progress])
 
-  const page = project ? (
-    <ProjectPage project={project} menuOpen={menuOpen} onMenuToggle={() => setMenuOpen((value) => !value)} />
-  ) : cleanPath === '/about' ? (
-    <AboutPage menuOpen={menuOpen} onMenuToggle={() => setMenuOpen((value) => !value)} />
-  ) : cleanPath === '/contact' ? (
-    <ContactPage menuOpen={menuOpen} onMenuToggle={() => setMenuOpen((value) => !value)} />
-  ) : (
-    <HomePage menuOpen={menuOpen} onMenuToggle={() => setMenuOpen((value) => !value)} />
-  )
+  useEffect(() => {
+    const onVisibility = () => {
+      const player = audio.current
+      if (!player || !entered) return
+      if (document.hidden) player.pause()
+      else if (!muted) void player.play().catch(() => undefined)
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => document.removeEventListener('visibilitychange', onVisibility)
+  }, [entered, muted])
+
+  useEffect(() => {
+    window.__DUDE_WORK_DIAGNOSTICS__ = {
+      entered,
+      progress,
+      ready,
+      webglContextLost: contextLost,
+    }
+  }, [contextLost, entered, progress, ready])
 
   return (
-    <RouterContext.Provider value={navigate}>
-      <div className="route-stage" key={cleanPath} aria-hidden={menuOpen || undefined}>{page}</div>
-      <MenuOverlay open={menuOpen} onClose={() => setMenuOpen(false)} />
-    </RouterContext.Provider>
+    <main className={`experience${entered ? ' has-entered' : ''}${contextLost ? ' has-context-loss' : ''}`}>
+      <PortfolioWorld
+        active={entered && !contextLost}
+        inputRef={input}
+        onContextLost={setContextLost}
+        onProgress={setProgress}
+        onReady={() => setReady(true)}
+        progressRef={progressRef}
+        reducedMotion={reducedMotion}
+      />
+      <audio loop playsInline preload="metadata" ref={audio} src="/assets/audio/bamboo-flute.webm" />
+      {!entered && <EntryVeil onEnter={handleEnter} ready={ready} />}
+      {entered && (
+        <SymbolicHud
+          input={input}
+          muted={muted}
+          onMuteToggle={() => setMuted((value) => !value)}
+          progress={progress}
+        />
+      )}
+      <div aria-hidden="true" className="paper-grain" />
+      <div aria-hidden="true" className="context-loss-mark" />
+      <AccessibleProjectLinks />
+    </main>
   )
+}
+
+function THREE_SMOOTHSTEP(value: number, min: number, max: number) {
+  const normalized = Math.max(0, Math.min(1, (value - min) / (max - min)))
+  return normalized * normalized * (3 - 2 * normalized)
 }
 
 export default App
