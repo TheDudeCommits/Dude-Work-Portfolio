@@ -36,9 +36,9 @@ function ToriiSigil() {
   )
 }
 
-function EntryVeil({ onEnter, ready }: { onEnter: () => void; ready: boolean }) {
+function EntryVeil({ exiting, onEnter, ready }: { exiting: boolean; onEnter: () => void; ready: boolean }) {
   return (
-    <div className={`entry-veil${ready ? ' is-ready' : ''}`}>
+    <div className={`entry-veil${ready ? ' is-ready' : ''}${exiting ? ' is-exiting' : ''}`}>
       <div className="entry-veil__wash" aria-hidden="true" />
       <button
         aria-label="Enter the garden"
@@ -167,22 +167,27 @@ function App() {
   const audio = useRef<HTMLAudioElement>(null)
   const input = useRef<JourneyInput>({ forward: 0, lookX: 0, lookY: 0, strafe: 0, wheel: 0 })
   const progressRef = useRef(0)
+  const veilTimer = useRef<number | undefined>(undefined)
   const [contextLost, setContextLost] = useState(false)
   const [entered, setEntered] = useState(false)
   const [muted, setMuted] = useState(false)
   const [progress, setProgress] = useState(0)
   const [ready, setReady] = useState(false)
+  const [veilVisible, setVeilVisible] = useState(true)
   const reducedMotion = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, [])
 
   const handleEnter = useCallback(() => {
-    if (!ready) return
+    if (!ready || entered) return
     const player = audio.current
     if (player) {
       player.volume = 0.025
       void player.play().catch(() => undefined)
     }
     setEntered(true)
-  }, [ready])
+    veilTimer.current = window.setTimeout(() => setVeilVisible(false), reducedMotion ? 120 : 1450)
+  }, [entered, ready, reducedMotion])
+
+  useEffect(() => () => window.clearTimeout(veilTimer.current), [])
 
   useEffect(() => {
     const player = audio.current
@@ -223,7 +228,7 @@ function App() {
         reducedMotion={reducedMotion}
       />
       <audio loop playsInline preload="metadata" ref={audio} src="/assets/audio/bamboo-flute.webm" />
-      {!entered && <EntryVeil onEnter={handleEnter} ready={ready} />}
+      {veilVisible && <EntryVeil exiting={entered} onEnter={handleEnter} ready={ready} />}
       {entered && (
         <SymbolicHud
           input={input}
