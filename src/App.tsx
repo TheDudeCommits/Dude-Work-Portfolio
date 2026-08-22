@@ -9,15 +9,33 @@ import {
   useState,
 } from 'react'
 import { projects } from './projects'
-import type { JourneyInput } from './world/types'
-import { PortfolioWorld } from './world/World'
+import { LivingScrollWorld } from './world/LivingScrollWorld'
+import {
+  freeRoamCommands,
+  freeRoamTouch,
+  getFreeRoamSnapshot,
+  useFreeRoamStore,
+} from './world/v2/runtime'
 
 declare global {
   interface Window {
+    __DUDE_WORK_DEBUG__?: {
+      interact: () => void
+      reset: () => void
+      snapshot: typeof getFreeRoamSnapshot
+      teleport: typeof freeRoamCommands.teleport
+    }
     __DUDE_WORK_DIAGNOSTICS__?: {
+      activeZone: string | null
+      drawCalls: number
       entered: boolean
-      progress: number
+      focusedInteraction: string | null
+      fps: number
+      grounded: boolean
+      playerPosition: readonly [number, number, number]
+      pointerLocked: boolean
       ready: boolean
+      triangles: number
       webglContextLost: boolean
     }
   }
@@ -67,28 +85,31 @@ function FootstepHint({ visible }: { visible: boolean }) {
   )
 }
 
-function TouchJoystick({ input }: { input: React.MutableRefObject<JourneyInput> }) {
+function TouchJoystick() {
   const root = useRef<HTMLDivElement>(null)
   const knob = useRef<HTMLSpanElement>(null)
 
   const update = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     if (!root.current) return
     const bounds = root.current.getBoundingClientRect()
-    const dx = (event.clientX - (bounds.left + bounds.width / 2)) / (bounds.width * 0.36)
-    const dy = (event.clientY - (bounds.top + bounds.height / 2)) / (bounds.height * 0.36)
-    const length = Math.max(1, Math.hypot(dx, dy))
-    const x = dx / length
-    const y = dy / length
-    input.current.strafe = x
-    input.current.forward = -y
-    if (knob.current) knob.current.style.transform = `translate3d(${x * 26}px, ${y * 26}px, 0)`
-  }, [input])
+    const rawX = (event.clientX - (bounds.left + bounds.width / 2)) / (bounds.width * 0.36)
+    const rawY = (event.clientY - (bounds.top + bounds.height / 2)) / (bounds.height * 0.36)
+    const magnitude = Math.hypot(rawX, rawY)
+    const scale = magnitude > 1 ? 1 / magnitude : 1
+    const x = rawX * scale
+    const y = rawY * scale
+    freeRoamTouch.setMove(x, -y)
+    freeRoamTouch.setSprint(magnitude > 0.92)
+    if (knob.current) knob.current.style.transform = `translate3d(${x * 27}px, ${y * 27}px, 0)`
+  }, [])
 
   const reset = useCallback(() => {
-    input.current.strafe = 0
-    input.current.forward = 0
+    freeRoamTouch.setMove(0, 0)
+    freeRoamTouch.setSprint(false)
     if (knob.current) knob.current.style.transform = 'translate3d(0, 0, 0)'
-  }, [input])
+  }, [])
+
+  useEffect(() => () => freeRoamTouch.release(), [])
 
   return (
     <div
@@ -115,19 +136,71 @@ function TouchJoystick({ input }: { input: React.MutableRefObject<JourneyInput> 
   )
 }
 
+function TouchLookPad() {
+  const lastPosition = useRef<[number, number] | null>(null)
+  const release = useCallback(() => {
+    lastPosition.current = null
+  }, [])
+
+  return (
+    <div
+      aria-label="View control"
+      className="touch-look-pad"
+      onPointerCancel={release}
+      onPointerDown={(event) => {
+        event.currentTarget.setPointerCapture(event.pointerId)
+        lastPosition.current = [event.clientX, event.clientY]
+      }}
+      onPointerMove={(event) => {
+        if (!event.currentTarget.hasPointerCapture(event.pointerId) || !lastPosition.current) return
+        const [lastX, lastY] = lastPosition.current
+        freeRoamTouch.addLookDelta(event.clientX - lastX, event.clientY - lastY)
+        lastPosition.current = [event.clientX, event.clientY]
+      }}
+      onPointerUp={(event) => {
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
+        release()
+      }}
+      role="application"
+    >
+      <span aria-hidden="true" />
+      <i aria-hidden="true" />
+    </div>
+  )
+}
+
+function InteractionSeal({ visible }: { visible: boolean }) {
+  return (
+    <button
+      aria-label="Awaken nearby garden element"
+      className={`interaction-seal${visible ? ' is-visible' : ''}`}
+      onClick={() => freeRoamTouch.interact()}
+      tabIndex={visible ? 0 : -1}
+      type="button"
+    >
+      <span aria-hidden="true" />
+      <i aria-hidden="true" />
+    </button>
+  )
+}
+
 function SymbolicHud({
-  input,
+  depth,
+  interactionAvailable,
   muted,
   onMuteToggle,
-  progress,
+  showFootsteps,
+  showSocials,
 }: {
-  input: React.MutableRefObject<JourneyInput>
+  depth: number
+  interactionAvailable: boolean
   muted: boolean
   onMuteToggle: () => void
-  progress: number
+  showFootsteps: boolean
+  showSocials: boolean
 }) {
   return (
-    <div className="symbolic-hud" style={{ '--journey-progress': progress } as CSSProperties}>
+    <div className="symbolic-hud" style={{ '--garden-depth': depth } as CSSProperties}>
       <div aria-hidden="true" className="identity-seal" />
       <button
         aria-label={muted ? 'Unmute ambient music' : 'Mute ambient music'}
@@ -138,10 +211,12 @@ function SymbolicHud({
         {muted ? <VolumeX /> : <Volume2 />}
         <span aria-hidden="true" />
       </button>
-      <div aria-hidden="true" className="journey-stroke"><i /></div>
-      <FootstepHint visible={progress < 0.025} />
-      <TouchJoystick input={input} />
-      <nav aria-label="Social links" className={`social-glyphs${progress > 0.86 ? ' is-visible' : ''}`}>
+      <div aria-hidden="true" className="garden-depth-stroke"><i /></div>
+      <FootstepHint visible={showFootsteps} />
+      <TouchJoystick />
+      <TouchLookPad />
+      <InteractionSeal visible={interactionAvailable} />
+      <nav aria-label="Social links" className={`social-glyphs${showSocials ? ' is-visible' : ''}`}>
         <a aria-label="GitHub" href="https://github.com/TheDudeCommits" rel="noreferrer" target="_blank">
           <GitFork />
         </a>
@@ -165,15 +240,17 @@ function AccessibleProjectLinks() {
 
 function App() {
   const audio = useRef<HTMLAudioElement>(null)
-  const input = useRef<JourneyInput>({ forward: 0, lookX: 0, lookY: 0, strafe: 0, wheel: 0 })
-  const progressRef = useRef(0)
   const veilTimer = useRef<number | undefined>(undefined)
   const [contextLost, setContextLost] = useState(false)
   const [entered, setEntered] = useState(false)
   const [muted, setMuted] = useState(false)
-  const [progress, setProgress] = useState(0)
   const [ready, setReady] = useState(false)
   const [veilVisible, setVeilVisible] = useState(true)
+  const motion = useFreeRoamStore((state) => state.motion)
+  const activeZone = useFreeRoamStore((state) => state.activeZone)
+  const interaction = useFreeRoamStore((state) => state.interaction)
+  const diagnostics = useFreeRoamStore((state) => state.diagnostics)
+  const pointerLocked = useFreeRoamStore((state) => state.pointerLocked)
   const reducedMotion = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, [])
 
   const handleEnter = useCallback(() => {
@@ -184,7 +261,7 @@ function App() {
       void player.play().catch(() => undefined)
     }
     setEntered(true)
-    veilTimer.current = window.setTimeout(() => setVeilVisible(false), reducedMotion ? 120 : 1450)
+    veilTimer.current = window.setTimeout(() => setVeilVisible(false), reducedMotion ? 120 : 1300)
   }, [entered, ready, reducedMotion])
 
   useEffect(() => () => window.clearTimeout(veilTimer.current), [])
@@ -192,9 +269,10 @@ function App() {
   useEffect(() => {
     const player = audio.current
     if (!player) return
-    const distanceGain = THREE_SMOOTHSTEP(progress, 0.02, 0.83)
-    player.volume = muted ? 0 : Math.min(0.58, 0.025 + distanceGain * 0.52)
-  }, [muted, progress])
+    const distanceToHeart = Math.hypot(motion.position[0], motion.position[2] + 5)
+    const proximity = 1 - smoothstep(distanceToHeart, 8, 30)
+    player.volume = muted ? 0 : Math.min(0.58, 0.025 + proximity * 0.53)
+  }, [motion.position, muted])
 
   useEffect(() => {
     const onVisibility = () => {
@@ -209,32 +287,58 @@ function App() {
 
   useEffect(() => {
     window.__DUDE_WORK_DIAGNOSTICS__ = {
+      activeZone: activeZone?.id ?? null,
+      drawCalls: diagnostics.drawCalls,
       entered,
-      progress,
+      focusedInteraction: interaction.nearbyId,
+      fps: diagnostics.fps,
+      grounded: motion.grounded,
+      playerPosition: motion.position,
+      pointerLocked,
       ready,
+      triangles: diagnostics.triangles,
       webglContextLost: contextLost,
     }
-  }, [contextLost, entered, progress, ready])
+  }, [activeZone, contextLost, diagnostics, entered, interaction.nearbyId, motion, pointerLocked, ready])
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return
+    window.__DUDE_WORK_DEBUG__ = {
+      interact: () => freeRoamTouch.interact(),
+      reset: () => freeRoamCommands.teleport([0, 1.05, 18.6]),
+      snapshot: getFreeRoamSnapshot,
+      teleport: freeRoamCommands.teleport,
+    }
+    return () => {
+      delete window.__DUDE_WORK_DEBUG__
+    }
+  }, [])
+
+  const gardenDepth = Math.max(0, Math.min(1, (18.6 - motion.position[2]) / 38.6))
+  const showFootsteps = motion.speed < 0.08 && Math.hypot(motion.position[0], motion.position[2] - 18.6) < 1.4
+  const showSocials = gardenDepth > 0.22 || activeZone?.id === 'project-court'
 
   return (
     <main className={`experience${entered ? ' has-entered' : ''}${contextLost ? ' has-context-loss' : ''}`}>
-      <PortfolioWorld
+      <LivingScrollWorld
         active={entered && !contextLost}
-        inputRef={input}
         onContextLost={setContextLost}
-        onProgress={setProgress}
         onReady={() => setReady(true)}
-        progressRef={progressRef}
         reducedMotion={reducedMotion}
       />
       <audio loop playsInline preload="metadata" ref={audio} src="/assets/audio/bamboo-flute.webm" />
       {veilVisible && <EntryVeil exiting={entered} onEnter={handleEnter} ready={ready} />}
       {entered && (
         <SymbolicHud
-          input={input}
+          depth={gardenDepth}
+          interactionAvailable={interaction.available}
           muted={muted}
-          onMuteToggle={() => setMuted((value) => !value)}
-          progress={progress}
+          onMuteToggle={() => {
+            if (muted && audio.current?.paused) void audio.current.play().catch(() => undefined)
+            setMuted((value) => !value)
+          }}
+          showFootsteps={showFootsteps}
+          showSocials={showSocials}
         />
       )}
       <div aria-hidden="true" className="paper-grain" />
@@ -244,7 +348,7 @@ function App() {
   )
 }
 
-function THREE_SMOOTHSTEP(value: number, min: number, max: number) {
+function smoothstep(value: number, min: number, max: number) {
   const normalized = Math.max(0, Math.min(1, (value - min) / (max - min)))
   return normalized * normalized * (3 - 2 * normalized)
 }

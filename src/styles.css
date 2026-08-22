@@ -1,6 +1,6 @@
 :root {
-  color: #eee4ca;
-  background: #14130f;
+  color: #272825;
+  background: #c9d0c5;
   font-family: serif;
   font-synthesis: none;
   text-rendering: geometricPrecision;
@@ -22,7 +22,7 @@ body,
 
 body {
   min-width: 320px;
-  background: #14130f;
+  background: #c9d0c5;
 }
 
 button,
@@ -40,7 +40,7 @@ button {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #14130f;
+  background: #c9d0c5;
   isolation: isolate;
 }
 
@@ -56,6 +56,10 @@ button {
   cursor: grabbing;
 }
 
+.experience canvas:focus {
+  outline: none;
+}
+
 .experience audio {
   display: none;
 }
@@ -66,12 +70,12 @@ button {
   inset: 0;
   pointer-events: none;
   background-image:
-    radial-gradient(circle at 21% 18%, rgb(255 250 230 / 12%), transparent 34%),
+    radial-gradient(circle at 21% 18%, rgb(232 224 208 / 18%), transparent 34%),
     url('/assets/kozo-washi.webp');
   background-position: center;
   background-size: cover, 820px;
-  opacity: .075;
-  mix-blend-mode: soft-light;
+  opacity: .17;
+  mix-blend-mode: multiply;
 }
 
 .entry-veil {
@@ -82,9 +86,9 @@ button {
   place-items: center;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 47%, transparent 0 18%, rgb(9 9 7 / 14%) 46%, rgb(8 7 5 / 68%) 100%),
-    linear-gradient(180deg, rgb(18 17 13 / 8%), rgb(11 10 7 / 42%));
-  backdrop-filter: saturate(.84) contrast(1.04);
+    radial-gradient(circle at 50% 47%, transparent 0 18%, rgb(49 77 67 / 8%) 46%, rgb(45 67 80 / 28%) 100%),
+    linear-gradient(180deg, rgb(232 224 208 / 18%), rgb(201 208 197 / 34%));
+  backdrop-filter: saturate(.76) contrast(1.02) blur(2px);
   transition: opacity 1.35s cubic-bezier(.22, .78, .22, 1), filter 1.35s, visibility 1.35s;
 }
 
@@ -99,9 +103,9 @@ button {
   position: absolute;
   inset: -8%;
   background:
-    radial-gradient(ellipse at 50% 50%, transparent 0 12%, rgb(210 167 86 / 7%) 25%, transparent 43%),
-    conic-gradient(from 40deg at 50% 50%, transparent 0 10%, rgb(9 9 7 / 18%) 17%, transparent 29% 63%, rgb(107 35 27 / 15%) 72%, transparent 88%),
-    radial-gradient(ellipse at 8% 91%, rgb(5 8 7 / 46%), transparent 44%);
+    radial-gradient(ellipse at 50% 50%, transparent 0 12%, rgb(179 148 85 / 10%) 25%, transparent 43%),
+    conic-gradient(from 40deg at 50% 50%, transparent 0 10%, rgb(49 77 67 / 18%) 17%, transparent 29% 63%, rgb(166 74 55 / 13%) 72%, transparent 88%),
+    radial-gradient(ellipse at 8% 91%, rgb(45 67 80 / 22%), transparent 44%);
   filter: blur(12px);
   mix-blend-mode: multiply;
   animation: veil-breathe 11s ease-in-out infinite alternate;
@@ -115,8 +119,8 @@ button {
   place-items: center;
   padding: 0;
   border: 0;
-  color: #d8bc7a;
-  background: radial-gradient(circle, rgb(10 12 10 / 66%), rgb(10 10 8 / 18%) 58%, transparent 72%);
+  color: #a64a37;
+  background: radial-gradient(circle, rgb(232 224 208 / 72%), rgb(145 170 160 / 12%) 58%, transparent 72%);
   cursor: wait;
   opacity: .18;
   transform: scale(.91);
@@ -135,13 +139,13 @@ button {
 
 .entry-sigil:focus-visible .entry-sigil__halo,
 .entry-sigil:hover .entry-sigil__halo {
-  border-color: rgb(210 171 87 / 76%);
-  box-shadow: 0 0 54px rgb(181 119 50 / 18%), inset 0 0 40px rgb(6 8 7 / 38%);
+  border-color: rgb(166 74 55 / 74%);
+  box-shadow: 0 0 54px rgb(179 148 85 / 18%), inset 0 0 40px rgb(73 111 112 / 15%);
   transform: scale(1.06) rotate(9deg);
 }
 
 .entry-sigil:hover {
-  color: #f0d79b;
+  color: #2d4350;
 }
 
 .entry-sigil svg {
@@ -154,7 +158,7 @@ button {
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2.2;
-  filter: drop-shadow(0 8px 14px rgb(0 0 0 / 78%)) drop-shadow(0 0 16px rgb(199 147 63 / 20%));
+  filter: drop-shadow(0 8px 14px rgb(45 67 80 / 24%)) drop-shadow(0 0 16px rgb(179 148 85 / 20%));
 }
 
 .entry-sigil svg circle {
@@ -169,7 +173,7 @@ button {
 .entry-sigil__halo {
   position: absolute;
   inset: 3%;
-  border: 1px solid rgb(213 178 99 / 42%);
+  border: 1px solid rgb(45 67 80 / 34%);
   border-radius: 49% 51% 48% 52% / 51% 46% 54% 49%;
   transition: border-color .5s ease, transform 1s cubic-bezier(.22, .78, .22, 1);
 }
@@ -209,7 +213,7 @@ button {
 }
 
 .symbolic-hud {
-  --journey-progress: 0;
+  --garden-depth: 0;
   position: fixed;
   z-index: 70;
   inset: 0;
@@ -240,9 +244,9 @@ button {
   padding: 0;
   border: 0;
   border-radius: 50%;
-  color: rgb(235 229 211 / 88%);
-  background: radial-gradient(circle, rgb(15 18 15 / 72%), rgb(15 16 13 / 36%));
-  box-shadow: inset 0 0 0 1px rgb(218 184 109 / 24%), 0 8px 30px rgb(0 0 0 / 22%);
+  color: rgb(45 67 80 / 88%);
+  background: radial-gradient(circle, rgb(232 224 208 / 82%), rgb(201 208 197 / 45%));
+  box-shadow: inset 0 0 0 1px rgb(45 67 80 / 20%), 0 8px 30px rgb(45 67 80 / 12%);
   backdrop-filter: blur(12px);
   cursor: pointer;
   pointer-events: auto;
@@ -251,8 +255,8 @@ button {
 
 .sound-toggle:hover,
 .sound-toggle:focus-visible {
-  color: #fff7df;
-  background: rgb(143 76 64 / 60%);
+  color: #e8e0d0;
+  background: rgb(166 74 55 / 72%);
   outline: 0;
   transform: scale(1.06);
 }
@@ -271,25 +275,25 @@ button {
   animation: sound-breathe 2.5s ease-in-out infinite;
 }
 
-.journey-stroke {
+.garden-depth-stroke {
   position: absolute;
   top: 50%;
   right: 26px;
   width: 2px;
   height: min(34vh, 270px);
   overflow: hidden;
-  background: linear-gradient(180deg, transparent, rgb(224 190 116 / 26%) 10% 90%, transparent);
+  background: linear-gradient(180deg, transparent, rgb(45 67 80 / 18%) 10% 90%, transparent);
   border-radius: 80% 20% 62% 38%;
-  filter: drop-shadow(0 0 8px rgb(195 135 56 / 22%));
+  filter: drop-shadow(0 0 8px rgb(73 111 112 / 18%));
   transform: translateY(-50%);
 }
 
-.journey-stroke i {
+.garden-depth-stroke i {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, #d9c17f, #b64734 76%, transparent);
+  background: linear-gradient(180deg, #91aaa0, #a64a37 76%, transparent);
   clip-path: polygon(22% 0, 100% 4%, 63% 26%, 90% 48%, 28% 73%, 78% 100%, 0 94%, 36% 69%, 8% 42%, 54% 17%);
-  transform: scaleY(var(--journey-progress));
+  transform: scaleY(var(--garden-depth));
   transform-origin: top;
 }
 
@@ -316,8 +320,8 @@ button {
   width: 11px;
   height: 27px;
   border-radius: 58% 42% 52% 48%;
-  background: rgb(238 231 211 / 62%);
-  box-shadow: 0 5px 16px rgb(31 45 40 / 18%);
+  background: rgb(45 67 80 / 46%);
+  box-shadow: 0 5px 16px rgb(49 77 67 / 16%);
   transform: rotate(9deg);
   animation: footstep 1.9s ease-in-out infinite;
 }
@@ -353,11 +357,11 @@ button {
 .touch-joystick__ring {
   position: absolute;
   inset: 8px;
-  border: 1px solid rgb(237 228 207 / 22%);
+  border: 1px solid rgb(45 67 80 / 22%);
   border-radius: 50%;
-  border-color: rgb(220 189 119 / 26%);
-  background: conic-gradient(from 18deg, rgb(11 14 12 / 38%), transparent 18% 30%, rgb(180 131 58 / 13%) 47%, transparent 66% 82%, rgb(11 14 12 / 34%));
-  box-shadow: inset 0 0 30px rgb(4 6 5 / 28%), 0 0 32px rgb(0 0 0 / 16%);
+  border-color: rgb(45 67 80 / 24%);
+  background: conic-gradient(from 18deg, rgb(232 224 208 / 54%), transparent 18% 30%, rgb(179 148 85 / 16%) 47%, transparent 66% 82%, rgb(145 170 160 / 34%));
+  box-shadow: inset 0 0 30px rgb(49 77 67 / 12%), 0 0 32px rgb(45 67 80 / 10%);
   backdrop-filter: blur(8px);
 }
 
@@ -368,7 +372,7 @@ button {
   left: 50%;
   width: 1px;
   height: 42%;
-  background: linear-gradient(transparent, rgb(232 222 198 / 26%), transparent);
+  background: linear-gradient(transparent, rgb(45 67 80 / 26%), transparent);
   content: '';
   transform: translate(-50%, -50%);
 }
@@ -381,11 +385,88 @@ button {
   position: relative;
   width: 35px;
   height: 35px;
-  border: 1px solid rgb(242 230 201 / 44%);
+  border: 1px solid rgb(45 67 80 / 42%);
   border-radius: 48% 52% 43% 57%;
-  background: radial-gradient(circle at 38% 34%, rgb(219 190 125 / 38%), rgb(35 42 35 / 74%) 68%);
-  box-shadow: 0 8px 24px rgb(25 35 31 / 16%);
+  background: radial-gradient(circle at 38% 34%, rgb(232 224 208 / 76%), rgb(73 111 112 / 58%) 68%);
+  box-shadow: 0 8px 24px rgb(45 67 80 / 14%);
   transition: transform .08s linear;
+}
+
+.touch-look-pad {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: none;
+  width: 56vw;
+  height: 68vh;
+  overflow: hidden;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.touch-look-pad span,
+.touch-look-pad i {
+  position: absolute;
+  right: 28px;
+  bottom: 35%;
+  width: 82px;
+  height: 52px;
+  border-top: 1px solid rgb(45 67 80 / 13%);
+  border-radius: 50%;
+  content: '';
+  transform: rotate(-8deg);
+}
+
+.touch-look-pad i {
+  right: 41px;
+  bottom: calc(35% - 13px);
+  width: 56px;
+  opacity: .58;
+  transform: rotate(12deg);
+}
+
+.interaction-seal {
+  position: absolute;
+  bottom: 34px;
+  left: 50%;
+  display: grid;
+  width: 66px;
+  height: 66px;
+  visibility: hidden;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  opacity: 0;
+  background: radial-gradient(circle, rgb(232 224 208 / 74%), rgb(145 170 160 / 26%) 55%, transparent 72%);
+  cursor: pointer;
+  pointer-events: none;
+  transform: translate(-50%, 12px) scale(.72);
+  transition: opacity .4s ease, transform .5s cubic-bezier(.22, .78, .22, 1), visibility .4s;
+}
+
+.interaction-seal.is-visible {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0) scale(1);
+}
+
+.interaction-seal span {
+  position: absolute;
+  inset: 9px;
+  border: 2px solid rgb(166 74 55 / 78%);
+  border-right-color: transparent;
+  border-radius: 49% 51% 48% 52% / 52% 47% 53% 48%;
+  animation: interaction-breathe 2.3s ease-in-out infinite;
+}
+
+.interaction-seal i {
+  width: 7px;
+  height: 7px;
+  border-radius: 46% 54% 61% 39%;
+  background: #b39455;
+  box-shadow: 0 0 18px rgb(179 148 85 / 52%);
 }
 
 .social-glyphs {
@@ -411,18 +492,18 @@ button {
   width: 44px;
   height: 44px;
   place-items: center;
-  border: 1px solid rgb(237 228 207 / 23%);
+  border: 1px solid rgb(45 67 80 / 22%);
   border-radius: 50%;
-  color: rgb(237 228 207 / 82%);
-  background: radial-gradient(circle, rgb(18 21 17 / 76%), rgb(18 18 14 / 34%));
+  color: rgb(45 67 80 / 82%);
+  background: radial-gradient(circle, rgb(232 224 208 / 82%), rgb(201 208 197 / 44%));
   backdrop-filter: blur(10px);
   transition: color .3s ease, background .3s ease, transform .3s ease;
 }
 
 .social-glyphs a:hover,
 .social-glyphs a:focus-visible {
-  color: #fff4d9;
-  background: rgb(144 55 42 / 68%);
+  color: #e8e0d0;
+  background: rgb(166 74 55 / 72%);
   outline: 0;
   transform: translateY(-3px);
 }
@@ -510,6 +591,11 @@ button {
   50% { opacity: .72; transform: scale(1); }
 }
 
+@keyframes interaction-breathe {
+  0%, 100% { opacity: .54; transform: scale(.88) rotate(-7deg); }
+  50% { opacity: 1; transform: scale(1.06) rotate(5deg); }
+}
+
 @keyframes footstep {
   0%, 100% { opacity: .25; transform: translateY(6px) rotate(9deg); }
   50% { opacity: .9; transform: translateY(-4px) rotate(9deg); }
@@ -518,6 +604,10 @@ button {
 @media (pointer: coarse), (max-width: 760px) {
   .touch-joystick {
     display: grid;
+  }
+
+  .touch-look-pad {
+    display: block;
   }
 
   .footstep-hint {
@@ -538,14 +628,24 @@ button {
     right: max(14px, env(safe-area-inset-right));
   }
 
-  .journey-stroke {
+  .garden-depth-stroke {
     right: max(18px, env(safe-area-inset-right));
     height: 28vh;
   }
 
   .social-glyphs {
     right: max(18px, env(safe-area-inset-right));
-    bottom: max(24px, env(safe-area-inset-bottom));
+    bottom: max(122px, calc(env(safe-area-inset-bottom) + 104px));
+  }
+
+  .interaction-seal {
+    right: max(31px, env(safe-area-inset-right));
+    bottom: max(31px, env(safe-area-inset-bottom));
+    left: auto;
+  }
+
+  .interaction-seal.is-visible {
+    transform: scale(1);
   }
 }
 

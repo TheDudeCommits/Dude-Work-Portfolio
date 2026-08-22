@@ -7,17 +7,21 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "validate:art": "node scripts/art/validate-style-source.mjs",
+    "check": "npm run lint && npm run validate:art && npm run build"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
     "@react-three/postprocessing": "^3.0.5",
+    "@react-three/rapier": "^2.2.0",
     "lucide-react": "^1.33.0",
     "postprocessing": "^6.39.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "three": "0.182.0"
+    "three": "0.182.0",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
