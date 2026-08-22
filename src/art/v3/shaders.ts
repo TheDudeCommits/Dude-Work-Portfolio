@@ -189,19 +189,75 @@ export const livingSumiFragmentShader = /* glsl */ `
     float pigment = clamp(vSumiPigment * uPigmentGain + (brush - 0.5) * 0.26, 0.0, 1.0);
     float wetness = clamp(vSumiWetness * uWetnessGain, 0.0, 1.0);
     float dryness = clamp(vSumiDryness * uDrynessGain, 0.0, 1.0);
-    float livingWetBloom = wetness
-      * uMotionStrength
-      * (sin(uTime * 0.17 + dot(vSumiWorldPosition.xz, vSumiStroke) * 0.73) * 0.5 + 0.5);
-    float wetPool = smoothstep(0.42, 0.8, brush + wetness * 0.18 + livingWetBloom);
+    vec2 capillaryFlow = sumiSafeDirection(vSumiStroke);
+    vec2 capillaryCross = vec2(-capillaryFlow.y, capillaryFlow.x);
+
+    float capillaryPhase =
+      dot(vSumiWorldPosition.xz, capillaryFlow) * 0.31
+      + dot(vSumiWorldPosition.xz, capillaryCross) * 0.13
+      + vSumiWorldPosition.y * 0.17;
+
+    float capillaryTide = (
+      sin(uTime * 0.19 + capillaryPhase + paper * 2.4) * 0.72
+      + sin(uTime * 0.11 - capillaryPhase * 0.47 + 1.7) * 0.28
+    ) * uMotionStrength;
+
+    float capillaryField = clamp(
+      brush * 0.68 + paper * 0.24 - crossedBristle * 0.10,
+      0.0,
+      1.0
+    );
+
+    float wetLoad = clamp(
+      wetness
+        * (1.35 + pigment * 0.65)
+        * (1.0 - dryness * 0.65)
+        * uAbsorbency,
+      0.0,
+      1.0
+    );
+
+    float capillaryFront = mix(0.58, 0.44, wetLoad) + capillaryTide;
+    float capillaryWidth = mix(
+      0.045,
+      0.085,
+      clamp(uAbsorbency, 0.0, 1.0)
+    );
+
+    float capillaryRim =
+      smoothstep(
+        capillaryFront - capillaryWidth,
+        capillaryFront,
+        capillaryField
+      )
+      * (
+        1.0 - smoothstep(
+          capillaryFront,
+          capillaryFront + capillaryWidth,
+          capillaryField
+        )
+      );
+
+    float wetPool = smoothstep(
+      capillaryFront + capillaryWidth * 0.25,
+      capillaryFront + capillaryWidth * 2.5,
+      capillaryField
+    );
     pigmentColor = mix(
       pigmentColor,
       uShadowBand,
       pigment * uPigmentDepth * uInkLoad * (0.1 + (1.0 - middleMass) * 0.3)
     );
+    float wetInk =
+      wetness * uAbsorbency * uWetDarkening
+        * (0.08 + wetPool * 0.12)
+      + capillaryRim * wetLoad
+        * (0.36 + uWetDarkening * 0.28);
+
     pigmentColor = mix(
       pigmentColor,
       uShadowBand,
-      wetness * uAbsorbency * uWetDarkening * (0.09 + wetPool * 0.17)
+      clamp(wetInk, 0.0, 0.58)
     );
     pigmentColor *= mix(0.76, 1.08, brush);
     float brokenBristle = smoothstep(0.34, 0.78, 1.0 - brush)
