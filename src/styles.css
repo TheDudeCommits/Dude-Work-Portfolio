@@ -74,8 +74,63 @@ button {
     url('/assets/kozo-washi.webp');
   background-position: center;
   background-size: cover, 820px;
-  opacity: .17;
+  opacity: .22;
   mix-blend-mode: multiply;
+}
+
+.cinematic-frame {
+  position: fixed;
+  z-index: 58;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
+.cinematic-frame__top,
+.cinematic-frame__bottom {
+  position: absolute;
+  right: -3vw;
+  left: -3vw;
+  height: clamp(18px, 3.8vh, 54px);
+  background:
+    radial-gradient(ellipse at 16% 100%, transparent 0 46%, rgb(24 29 27 / 42%) 66%, rgb(13 16 15 / 77%) 100%),
+    linear-gradient(180deg, rgb(13 16 15 / 84%), rgb(39 40 37 / 50%) 58%, transparent);
+  filter: blur(.35px);
+  opacity: .82;
+  transform-origin: center;
+  animation: film-gate-breathe 12s steps(7, end) infinite alternate;
+}
+
+.cinematic-frame__top {
+  top: -3px;
+  clip-path: polygon(0 0, 100% 0, 100% 75%, 92% 86%, 79% 72%, 64% 92%, 49% 77%, 31% 90%, 16% 71%, 0 88%);
+}
+
+.cinematic-frame__bottom {
+  bottom: -3px;
+  clip-path: polygon(0 15%, 12% 28%, 28% 10%, 43% 29%, 58% 7%, 73% 25%, 88% 9%, 100% 22%, 100% 100%, 0 100%);
+  transform: scaleY(.9);
+}
+
+.cinematic-frame__left,
+.cinematic-frame__right {
+  position: absolute;
+  top: 7%;
+  bottom: 6%;
+  width: min(5vw, 58px);
+  opacity: .32;
+  filter: blur(5px);
+}
+
+.cinematic-frame__left {
+  left: -2.6vw;
+  background: radial-gradient(ellipse at 0 46%, rgb(24 29 27 / 82%), transparent 72%);
+}
+
+.cinematic-frame__right {
+  right: -2.6vw;
+  background: radial-gradient(ellipse at 100% 57%, rgb(24 29 27 / 78%), transparent 72%);
 }
 
 .entry-veil {
@@ -250,7 +305,18 @@ button {
   backdrop-filter: blur(12px);
   cursor: pointer;
   pointer-events: auto;
-  transition: background .35s ease, color .35s ease, transform .35s ease;
+  transition: background .35s ease, color .35s ease, opacity .8s ease, transform .8s ease;
+}
+
+.experience.is-cinematic-rail:not(.is-project-court) .sound-toggle {
+  opacity: .2;
+  transform: scale(.86);
+}
+
+.experience.is-cinematic-rail:not(.is-project-court) .sound-toggle:hover,
+.experience.is-cinematic-rail:not(.is-project-court) .sound-toggle:focus-visible {
+  opacity: 1;
+  transform: scale(1.06);
 }
 
 .sound-toggle:hover,
@@ -297,48 +363,58 @@ button {
   transform-origin: top;
 }
 
-.footstep-hint {
+.journey-hint {
   position: absolute;
-  bottom: 6.5vh;
+  bottom: 6.2vh;
   left: 50%;
-  display: flex;
-  width: 46px;
-  height: 74px;
-  justify-content: space-between;
+  width: 42px;
+  height: 88px;
   opacity: 0;
   pointer-events: none;
-  transform: translateX(-50%) translateY(8px);
+  transform: translateX(-50%) translateY(10px);
   transition: opacity .7s ease, transform .7s ease;
 }
 
-.footstep-hint.is-visible {
-  opacity: .58;
+.journey-hint.is-visible {
+  opacity: .7;
   transform: translateX(-50%) translateY(0);
 }
 
-.footstep-hint span {
-  width: 11px;
-  height: 27px;
-  border-radius: 58% 42% 52% 48%;
-  background: rgb(45 67 80 / 46%);
-  box-shadow: 0 5px 16px rgb(49 77 67 / 16%);
-  transform: rotate(9deg);
-  animation: footstep 1.9s ease-in-out infinite;
-}
-
-.footstep-hint span:nth-child(2) {
-  align-self: flex-end;
-  transform: rotate(-9deg);
-  animation-delay: .95s;
-}
-
-.footstep-hint i {
+.journey-hint__orbit {
   position: absolute;
-  top: 32px;
+  top: 0;
   left: 50%;
-  width: 1px;
-  height: 26px;
-  background: linear-gradient(transparent, rgb(235 225 200 / 54%), transparent);
+  width: 25px;
+  height: 34px;
+  border: 1px solid rgb(45 67 80 / 48%);
+  border-radius: 47% 53% 44% 56% / 52% 48% 55% 45%;
+  transform: translateX(-50%);
+  animation: journey-orbit 3.2s ease-in-out infinite;
+}
+
+.journey-hint__stroke {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  width: 2px;
+  height: 17px;
+  border-radius: 80% 20% 56% 44%;
+  background: linear-gradient(180deg, rgb(166 74 55 / 78%), rgb(45 67 80 / 66%));
+  box-shadow: 0 5px 15px rgb(49 77 67 / 22%);
+  transform: translateX(-50%);
+  animation: journey-scroll 2.15s cubic-bezier(.22, .78, .22, 1) infinite;
+}
+
+.journey-hint__wash {
+  position: absolute;
+  top: 41px;
+  left: 50%;
+  width: 14px;
+  height: 38px;
+  background: linear-gradient(180deg, rgb(45 67 80 / 46%), rgb(73 111 112 / 9%) 70%, transparent);
+  clip-path: polygon(45% 0, 65% 0, 60% 57%, 100% 53%, 50% 100%, 0 54%, 39% 58%);
+  transform: translateX(-50%);
+  animation: journey-breathe 2.15s ease-in-out infinite;
 }
 
 .touch-joystick {
@@ -352,6 +428,15 @@ button {
   border-radius: 50%;
   pointer-events: auto;
   touch-action: none;
+  transition: opacity .8s ease;
+}
+
+.experience.is-cinematic-rail:not(.is-project-court) .touch-joystick {
+  opacity: .16;
+}
+
+.experience.is-cinematic-rail:not(.is-project-court) .touch-joystick:active {
+  opacity: .9;
 }
 
 .touch-joystick__ring {
@@ -596,9 +681,26 @@ button {
   50% { opacity: 1; transform: scale(1.06) rotate(5deg); }
 }
 
-@keyframes footstep {
-  0%, 100% { opacity: .25; transform: translateY(6px) rotate(9deg); }
-  50% { opacity: .9; transform: translateY(-4px) rotate(9deg); }
+@keyframes film-gate-breathe {
+  from { opacity: .74; transform: translate3d(-.25%, 0, 0) scaleY(.94); }
+  to { opacity: .9; transform: translate3d(.25%, 0, 0) scaleY(1.04); }
+}
+
+@keyframes journey-orbit {
+  0%, 100% { opacity: .42; transform: translateX(-50%) rotate(-2deg) scale(.95); }
+  50% { opacity: .88; transform: translateX(-50%) rotate(4deg) scale(1.03); }
+}
+
+@keyframes journey-scroll {
+  0% { opacity: 0; transform: translate(-50%, -3px) scaleY(.35); }
+  28% { opacity: 1; }
+  76% { opacity: .65; }
+  100% { opacity: 0; transform: translate(-50%, 12px) scaleY(.72); }
+}
+
+@keyframes journey-breathe {
+  0%, 100% { opacity: .28; transform: translate(-50%, 0) scaleY(.88); }
+  50% { opacity: .74; transform: translate(-50%, 4px) scaleY(1.08); }
 }
 
 @media (pointer: coarse), (max-width: 760px) {
@@ -610,7 +712,7 @@ button {
     display: block;
   }
 
-  .footstep-hint {
+  .journey-hint {
     bottom: 18vh;
   }
 

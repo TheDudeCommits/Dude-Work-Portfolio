@@ -1,4 +1,3 @@
-import { useFrame } from '@react-three/fiber'
 import { ActiveCollisionTypes } from '@dimforge/rapier3d-compat'
 import {
   CapsuleCollider,
@@ -18,6 +17,12 @@ import {
 } from 'react'
 import * as THREE from 'three'
 import { ART_PALETTE } from '../../../art'
+import {
+  CINEMATIC_GARDEN_RAIL_LENGTH,
+  createCinematicRailPose,
+  findNearestCinematicRailProgress,
+  sampleCinematicGardenRail,
+} from '../runtime/cinematicRail'
 import { freeRoamInput } from '../runtime/input'
 import { FREE_ROAM_PLAYER_TAG } from '../runtime/interactions'
 import { freeRoamStore } from '../runtime/store'
@@ -36,10 +41,12 @@ export interface FreeRoamPlayerProps {
   autostepHeight?: number
   autostepMinWidth?: number
   braking?: number
+  /** @deprecated The camera is now first-person and has no orbit distance. */
   cameraDistance?: number
   cameraTargetHeight?: number
   capsuleHalfHeight?: number
   capsuleRadius?: number
+  /** @deprecated Rendered avatars are intentionally suppressed. */
   children?: ReactNode
   debugVisual?: boolean
   gravity?: number
@@ -51,16 +58,17 @@ export interface FreeRoamPlayerProps {
   minSlideAngle?: number
   onReady?: (api: FreeRoamPlayerApi) => void
   onRecover?: () => void
+  railProgressDamping?: number
+  railReattachDistance?: number
+  railReattachSpeed?: number
+  railScrollSensitivity?: number
+  railTravelSpeed?: number
   snapToGround?: number
   spawn?: Vector3Tuple
   sprintSpeed?: number
+  /** @deprecated There is no visible player mesh to turn. */
   visualTurnSpeed?: number
   walkSpeed?: number
-}
-
-const dampAngle = (current: number, target: number, damping: number, delta: number) => {
-  const difference = Math.atan2(Math.sin(target - current), Math.cos(target - current))
-  return current + difference * (1 - Math.exp(-damping * delta))
 }
 
 export const FreeRoamPlayer = forwardRef<FreeRoamPlayerApi, FreeRoamPlayerProps>(function FreeRoamPlayer({
@@ -69,11 +77,9 @@ export const FreeRoamPlayer = forwardRef<FreeRoamPlayerApi, FreeRoamPlayerProps>
   autostepHeight = 0.38,
   autostepMinWidth = 0.2,
   braking = 24,
-  cameraDistance = 5.8,
   cameraTargetHeight = 1.35,
   capsuleHalfHeight = 0.52,
   capsuleRadius = 0.42,
-  children,
   debugVisual = false,
   gravity = 22,
   initialCameraPitch = 0.28,
@@ -84,31 +90,42 @@ export const FreeRoamPlayer = forwardRef<FreeRoamPlayerApi, FreeRoamPlayerProps>
   minSlideAngle = THREE.MathUtils.degToRad(52),
   onReady,
   onRecover,
+  railProgressDamping = 5.8,
+  railReattachDistance = 0.32,
+  railReattachSpeed = 7.4,
+  railScrollSensitivity = 0.00042,
+  railTravelSpeed = 6.2,
   snapToGround = 0.28,
   spawn = [0, 1.05, 18.6],
   sprintSpeed = 6.2,
-  visualTurnSpeed = 14,
   walkSpeed = 3.65,
 }: FreeRoamPlayerProps, forwardedRef) {
   const { rapier, world } = useRapier()
   const body = useRef<RapierRigidBody>(null)
   const collider = useRef<RapierCollider>(null)
   const cameraAnchor = useRef<THREE.Group>(null)
-  const visual = useRef<THREE.Group>(null)
   const controller = useRef<ReturnType<typeof world.createCharacterController> | null>(null)
   const horizontalVelocity = useRef(new THREE.Vector2())
   const verticalVelocity = useRef(0)
   const grounded = useRef(false)
-  const facing = useRef(initialCameraYaw + Math.PI)
   const teleportVersion = useRef(freeRoamStore.getState().teleportVersion)
   const publishClock = useRef(0)
   const recoveryCount = useRef(0)
   const onReadyRef = useRef(onReady)
   const api = useMemo<FreeRoamPlayerApi>(() => ({
     getRigidBody: () => body.current,
-    resetToCheckpoint: () => freeRoamStore.getState().resetToCheckpoint(),
-    teleport: (target) => freeRoamStore.getState().requestTeleport(target),
+    resetToCheckpoint: () => {
+      const state = freeRoamStore.getState()
+      state.setExploration({ mode: 'free' })
+      state.resetToCheckpoint()
+    },
+    teleport: (target) => {
+      const state = freeRoamStore.getState()
+      state.setExploration({ mode: 'free' })
+      state.requestTeleport(target)
+    },
   }), [])
+  const railPose = useMemo(createCinematicRailPose, [])
   const vectors = useMemo(() => ({
     desired: new THREE.Vector3(),
     forward: new THREE.Vector3(),
@@ -148,6 +165,11 @@ export const FreeRoamPlayer = forwardRef<FreeRoamPlayerApi, FreeRoamPlayerProps>
     freeRoamStore.getState().setCheckpoint(initialSpawn)
     freeRoamStore.getState().requestTeleport(initialSpawn)
     freeRoamStore.getState().setCameraAngles(initialCameraYaw, initialCameraPitch)
+    freeRoamStore.getState().setExploration({
+      mode: 'rail',
+      railProgress: 0,
+      railTargetProgress: 0,
+    })
   }, [initialCameraPitch, initialCameraYaw, spawnX, spawnY, spawnZ])
 
   useBeforePhysicsStep((physicsWorld) => {
@@ -180,12 +202,115 @@ export const FreeRoamPlayer = forwardRef<FreeRoamPlayerApi, FreeRoamPlayerProps>
       grounded.current = false
       recoveryCount.current += 1
       runtime.setDiagnostics({ recoveries: recoveryCount.current })
+      runtime.setExploration({ mode: 'free' })
       onRecover?.()
       return
     }
 
     const input = active ? freeRoamInput.movement() : { moveX: 0, moveY: 0, sprint: false }
     const inputMagnitude = Math.hypot(input.moveX, input.moveY)
+    const scrollDelta = active ? freeRoamInput.consumeScroll() : 0
+    let explorationMode = runtime.exploration.mode
+    let railProgress = runtime.exploration.railProgress
+    let railTargetProgress = runtime.exploration.railTargetProgress
+
+    if (inputMagnitude > 0.01) {
+      if (explorationMode !== 'free') {
+        railProgress = findNearestCinematicRailProgress(current, 96)
+        railTargetProgress = railProgress
+        explorationMode = 'free'
+        runtime.setExploration({
+          mode: explorationMode,
+          railProgress,
+          railTargetProgress,
+        })
+      }
+    } else if (Math.abs(scrollDelta) > 0.001) {
+      if (explorationMode === 'free') {
+        railProgress = findNearestCinematicRailProgress(current, 128)
+        railTargetProgress = railProgress
+        explorationMode = 'reattaching'
+      }
+      railTargetProgress = THREE.MathUtils.clamp(
+        railTargetProgress + scrollDelta * railScrollSensitivity,
+        0,
+        1,
+      )
+      runtime.setExploration({
+        mode: explorationMode,
+        railProgress,
+        railTargetProgress,
+      })
+    }
+
+    if (explorationMode !== 'free') {
+      const dampedRailProgress = THREE.MathUtils.damp(
+        railProgress,
+        railTargetProgress,
+        railProgressDamping,
+        dt,
+      )
+      const maximumProgressStep = railTravelSpeed * dt / CINEMATIC_GARDEN_RAIL_LENGTH
+      railProgress += THREE.MathUtils.clamp(
+        dampedRailProgress - railProgress,
+        -maximumProgressStep,
+        maximumProgressStep,
+      )
+      sampleCinematicGardenRail(railProgress, railPose)
+      vectors.movement.set(
+        railPose.position.x - current.x,
+        railPose.position.y - current.y,
+        railPose.position.z - current.z,
+      )
+      const railDistance = vectors.movement.length()
+      if (explorationMode === 'reattaching' && railDistance > 0.0001) {
+        vectors.movement.clampLength(0, railReattachSpeed * dt)
+      }
+      if (
+        explorationMode === 'reattaching'
+        && railDistance <= railReattachDistance
+      ) {
+        explorationMode = 'rail'
+      }
+      runtime.setExploration({
+        mode: explorationMode,
+        railProgress,
+        railTargetProgress,
+      })
+      freeRoamInput.consumeJump()
+      const next = {
+        x: current.x + vectors.movement.x,
+        y: current.y + vectors.movement.y,
+        z: current.z + vectors.movement.z,
+      }
+      rigidBody.setNextKinematicTranslation(next)
+      horizontalVelocity.current.set(
+        vectors.movement.x / Math.max(dt, 0.001),
+        vectors.movement.z / Math.max(dt, 0.001),
+      )
+      verticalVelocity.current = vectors.movement.y / Math.max(dt, 0.001)
+      grounded.current = true
+
+      const speed = horizontalVelocity.current.length()
+      publishClock.current += dt
+      if (publishClock.current >= 1 / 15) {
+        publishClock.current = 0
+        runtime.setMotion({
+          grounded: true,
+          moving: speed > 0.1,
+          position: [next.x, next.y, next.z],
+          speed,
+          sprinting: false,
+          verticalSpeed: verticalVelocity.current,
+        })
+        runtime.setDiagnostics({
+          collisionCount: 0,
+          physicsStepMs: performance.now() - startedAt,
+        })
+      }
+      return
+    }
+
     const yaw = runtime.cameraYaw
     vectors.forward.set(Math.sin(yaw), 0, -Math.cos(yaw))
     vectors.right.set(Math.cos(yaw), 0, Math.sin(yaw))
@@ -195,8 +320,8 @@ export const FreeRoamPlayer = forwardRef<FreeRoamPlayerApi, FreeRoamPlayerProps>
       .addScaledVector(vectors.right, input.moveX)
     if (vectors.desired.lengthSq() > 1) vectors.desired.normalize()
     const sprinting = input.sprint && inputMagnitude > 0.1
-    const targetSpeed = sprinting ? sprintSpeed : walkSpeed
-    vectors.desired.multiplyScalar(targetSpeed)
+    vectors.desired.multiplyScalar(sprinting ? sprintSpeed : walkSpeed)
+
     const damping = inputMagnitude > 0.01 ? acceleration : braking
     horizontalVelocity.current.x = THREE.MathUtils.damp(
       horizontalVelocity.current.x,
@@ -212,7 +337,7 @@ export const FreeRoamPlayer = forwardRef<FreeRoamPlayerApi, FreeRoamPlayerProps>
     )
 
     const jumpQueued = freeRoamInput.consumeJump()
-    const jumpRequested = active && jumpQueued
+    const jumpRequested = active && explorationMode === 'free' && jumpQueued
     if (jumpRequested && grounded.current) {
       verticalVelocity.current = jumpSpeed
       grounded.current = false
@@ -248,7 +373,6 @@ export const FreeRoamPlayer = forwardRef<FreeRoamPlayerApi, FreeRoamPlayerProps>
     }
 
     const speed = horizontalVelocity.current.length()
-    if (speed > 0.12) facing.current = Math.atan2(horizontalVelocity.current.x, horizontalVelocity.current.y)
     publishClock.current += dt
     if (publishClock.current >= 1 / 15) {
       publishClock.current = 0
@@ -265,16 +389,6 @@ export const FreeRoamPlayer = forwardRef<FreeRoamPlayerApi, FreeRoamPlayerProps>
         physicsStepMs: performance.now() - startedAt,
       })
     }
-  })
-
-  useFrame((_, rawDelta) => {
-    if (!visual.current) return
-    visual.current.rotation.y = dampAngle(
-      visual.current.rotation.y,
-      facing.current,
-      visualTurnSpeed,
-      Math.min(rawDelta, 0.1),
-    )
   })
 
   return (
@@ -298,9 +412,6 @@ export const FreeRoamPlayer = forwardRef<FreeRoamPlayerApi, FreeRoamPlayerProps>
           ref={collider}
         />
         <group position={[0, cameraTargetHeight - capsuleCenterHeight, 0]} ref={cameraAnchor} />
-        <group position={[0, -capsuleCenterHeight, 0]} ref={visual}>
-          {children}
-        </group>
         {debugVisual && (
           <mesh visible>
             <capsuleGeometry args={[capsuleRadius, capsuleHalfHeight * 2, 8, 16]} />
@@ -311,9 +422,6 @@ export const FreeRoamPlayer = forwardRef<FreeRoamPlayerApi, FreeRoamPlayerProps>
       <FreeRoamCamera
         active={active}
         anchorRef={cameraAnchor}
-        bodyRef={body}
-        colliderRef={collider}
-        distance={cameraDistance}
         initialPitch={initialCameraPitch}
         initialYaw={initialCameraYaw}
       />

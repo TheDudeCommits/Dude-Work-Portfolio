@@ -30,6 +30,7 @@ class FreeRoamInputBuffer {
   private jumpQueued = false
   private lookX = 0
   private lookY = 0
+  private scrollDelta = 0
   private touchMoveX = 0
   private touchMoveY = 0
   private touchSprint = false
@@ -50,6 +51,12 @@ class FreeRoamInputBuffer {
     this.lookX += THREE.MathUtils.clamp(deltaX, -160, 160)
     this.lookY += THREE.MathUtils.clamp(deltaY, -160, 160)
     freeRoamStore.getState().setInputMode('touch')
+  }
+
+  addScroll(deltaY: number) {
+    this.scrollDelta += THREE.MathUtils.clamp(deltaY, -360, 360)
+    this.scrollDelta = THREE.MathUtils.clamp(this.scrollDelta, -960, 960)
+    freeRoamStore.getState().setInputMode('scroll')
   }
 
   setTouchMove(x: number, y: number) {
@@ -98,6 +105,12 @@ class FreeRoamInputBuffer {
     return look
   }
 
+  consumeScroll(): number {
+    const delta = this.scrollDelta
+    this.scrollDelta = 0
+    return delta
+  }
+
   consumeInteract(): boolean {
     const queued = this.interactQueued
     this.interactQueued = false
@@ -114,6 +127,7 @@ class FreeRoamInputBuffer {
     this.desktopKeys.clear()
     this.lookX = 0
     this.lookY = 0
+    this.scrollDelta = 0
   }
 
   resetTouch() {
@@ -140,4 +154,3 @@ export const freeRoamTouch: FreeRoamTouchBridge = {
   setMove: (x, y) => freeRoamInput.setTouchMove(x, y),
   setSprint: (sprinting) => freeRoamInput.setTouchSprint(sprinting),
 }
-

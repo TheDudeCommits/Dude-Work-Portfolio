@@ -2,6 +2,8 @@ import { useStore } from 'zustand'
 import { createStore } from 'zustand/vanilla'
 import type {
   FreeRoamDiagnosticsState,
+  FreeRoamCommands,
+  FreeRoamExplorationState,
   FreeRoamInputMode,
   FreeRoamInteractionState,
   FreeRoamMotionState,
@@ -38,6 +40,12 @@ const DEFAULT_INTERACTION: FreeRoamInteractionState = {
   nearbyId: null,
 }
 
+const DEFAULT_EXPLORATION: FreeRoamExplorationState = {
+  mode: 'rail',
+  railProgress: 0,
+  railTargetProgress: 0,
+}
+
 export interface FreeRoamRuntimeActions {
   requestTeleport: (target: Vector3Tuple) => void
   reset: (spawn?: Vector3Tuple) => void
@@ -46,6 +54,7 @@ export interface FreeRoamRuntimeActions {
   setCameraAngles: (yaw: number, pitch: number) => void
   setCheckpoint: (checkpoint: Vector3Tuple) => void
   setDiagnostics: (diagnostics: Partial<FreeRoamDiagnosticsState>) => void
+  setExploration: (exploration: Partial<FreeRoamExplorationState>) => void
   setInputMode: (mode: FreeRoamInputMode) => void
   setInteraction: (interaction: Partial<FreeRoamInteractionState>) => void
   setMotion: (motion: Partial<FreeRoamMotionState>) => void
@@ -62,6 +71,7 @@ export const freeRoamStore = createStore<FreeRoamRuntimeStore>()((set, get) => (
   cameraYaw: 0,
   checkpoint: cloneTuple(DEFAULT_SPAWN),
   diagnostics: { ...DEFAULT_DIAGNOSTICS },
+  exploration: { ...DEFAULT_EXPLORATION },
   inputMode: 'unknown',
   interaction: { ...DEFAULT_INTERACTION },
   motion: { ...DEFAULT_MOTION, position: cloneTuple(DEFAULT_SPAWN) },
@@ -78,6 +88,7 @@ export const freeRoamStore = createStore<FreeRoamRuntimeStore>()((set, get) => (
     cameraYaw: 0,
     checkpoint: cloneTuple(spawn),
     diagnostics: { ...DEFAULT_DIAGNOSTICS },
+    exploration: { ...DEFAULT_EXPLORATION },
     inputMode: 'unknown',
     interaction: { ...DEFAULT_INTERACTION },
     motion: { ...DEFAULT_MOTION, position: cloneTuple(spawn) },
@@ -92,6 +103,15 @@ export const freeRoamStore = createStore<FreeRoamRuntimeStore>()((set, get) => (
   setDiagnostics: (diagnostics) => set((state) => ({
     diagnostics: { ...state.diagnostics, ...diagnostics },
   })),
+  setExploration: (exploration) => set((state) => {
+    const next = { ...state.exploration, ...exploration }
+    if (
+      next.mode === state.exploration.mode
+      && next.railProgress === state.exploration.railProgress
+      && next.railTargetProgress === state.exploration.railTargetProgress
+    ) return state
+    return { exploration: next }
+  }),
   setInputMode: (inputMode) => {
     if (get().inputMode !== inputMode) set({ inputMode })
   },
@@ -116,8 +136,26 @@ export const getFreeRoamSnapshot = (): FreeRoamRuntimeSnapshot => freeRoamStore.
 
 export const subscribeFreeRoam = freeRoamStore.subscribe
 
-export const freeRoamCommands = {
-  resetToCheckpoint: () => freeRoamStore.getState().resetToCheckpoint(),
+export const freeRoamCommands: FreeRoamCommands = {
+  enterFreeRoam: () => freeRoamStore.getState().setExploration({ mode: 'free' }),
+  resetToCheckpoint: () => {
+    const state = freeRoamStore.getState()
+    state.setExploration({ mode: 'free' })
+    state.resetToCheckpoint()
+  },
+  resumeCinematicRail: (progress?: number) => {
+    const state = freeRoamStore.getState()
+    const target = Math.min(1, Math.max(0, progress ?? state.exploration.railTargetProgress))
+    state.setExploration({
+      mode: 'reattaching',
+      railProgress: progress === undefined ? state.exploration.railProgress : target,
+      railTargetProgress: target,
+    })
+  },
   setCheckpoint: (checkpoint: Vector3Tuple) => freeRoamStore.getState().setCheckpoint(checkpoint),
-  teleport: (target: Vector3Tuple) => freeRoamStore.getState().requestTeleport(target),
+  teleport: (target: Vector3Tuple) => {
+    const state = freeRoamStore.getState()
+    state.setExploration({ mode: 'free' })
+    state.requestTeleport(target)
+  },
 }

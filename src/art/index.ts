@@ -7,6 +7,7 @@ export type {
 
 export {
   ART_ASSETS,
+  ART_CINEMA,
   ART_OUTLINE_PROFILES,
   ART_PALETTE,
   ART_RUNTIME,
@@ -41,6 +42,8 @@ export { LivingWaterSurfaceMaterial } from './materials/LivingWaterSurfaceMateri
 export type { LivingWaterSurfaceMaterialProps } from './materials/LivingWaterSurfaceMaterial'
 export { InkOutlineShell } from './passes/InkOutlineShell'
 export type { InkOutlineShellProps } from './passes/InkOutlineShell'
+export { SumiCinemaPass } from './passes/SumiCinemaPass'
+export type { SumiCinemaPassProps } from './passes/SumiCinemaPass'
 export { WindFieldProvider, useWindField } from './wind/WindFieldProvider'
 export type {
   WindFieldProviderProps,

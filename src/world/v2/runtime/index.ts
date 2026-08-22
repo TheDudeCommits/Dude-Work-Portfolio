@@ -4,6 +4,14 @@ export { FreeRoamRuntimeSystems } from './FreeRoamRuntimeSystems'
 export type { FreeRoamRuntimeSystemsProps } from './FreeRoamRuntimeSystems'
 export { FreeRoamDiagnosticsProbe } from './diagnostics'
 export type { FreeRoamDiagnosticsProbeProps } from './diagnostics'
+export {
+  CINEMATIC_GARDEN_RAIL_LENGTH,
+  CINEMATIC_GARDEN_RAIL_KEYFRAMES,
+  createCinematicRailPose,
+  findNearestCinematicRailProgress,
+  sampleCinematicGardenRail,
+} from './cinematicRail'
+export type { CinematicRailKeyframe, CinematicRailPose } from './cinematicRail'
 export { FREE_ROAM_CONTROLLED_KEYS, freeRoamInput, freeRoamTouch } from './input'
 export {
   FreeRoamInteractionSystem,
@@ -27,6 +35,8 @@ export type { FreeRoamRuntimeActions, FreeRoamRuntimeStore } from './store'
 export type {
   FreeRoamCommands,
   FreeRoamDiagnosticsState,
+  FreeRoamExplorationMode,
+  FreeRoamExplorationState,
   FreeRoamInputMode,
   FreeRoamInteractionState,
   FreeRoamLookDelta,

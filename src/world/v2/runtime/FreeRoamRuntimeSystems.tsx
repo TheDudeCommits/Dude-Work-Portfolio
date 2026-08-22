@@ -9,6 +9,7 @@ export interface FreeRoamRuntimeSystemsProps {
   diagnostics?: boolean
   interactions?: boolean
   pointerLock?: boolean
+  scrollNavigation?: boolean
 }
 
 /** Mount once inside Canvas. It wires desktop input, interactions, and runtime telemetry. */
@@ -17,6 +18,7 @@ export function FreeRoamRuntimeSystems({
   diagnostics = true,
   interactions = true,
   pointerLock = true,
+  scrollNavigation = true,
 }: FreeRoamRuntimeSystemsProps) {
   useEffect(() => () => freeRoamInput.resetAll(), [])
   useEffect(() => {
@@ -25,7 +27,11 @@ export function FreeRoamRuntimeSystems({
 
   return (
     <>
-      <FreeRoamDesktopInput active={active} pointerLock={pointerLock} />
+      <FreeRoamDesktopInput
+        active={active}
+        pointerLock={pointerLock}
+        scrollNavigation={scrollNavigation}
+      />
       {interactions && <FreeRoamInteractionSystem active={active} />}
       <FreeRoamDiagnosticsProbe enabled={diagnostics} />
     </>

@@ -1,6 +1,17 @@
 export type Vector3Tuple = readonly [x: number, y: number, z: number]
 
-export type FreeRoamInputMode = 'desktop' | 'touch' | 'unknown'
+export type FreeRoamInputMode = 'desktop' | 'scroll' | 'touch' | 'unknown'
+
+export type FreeRoamExplorationMode = 'free' | 'rail' | 'reattaching'
+
+export interface FreeRoamExplorationState {
+  /** Current camera/movement authority. */
+  mode: FreeRoamExplorationMode
+  /** Smoothed authored-rail position in the normalized [0, 1] range. */
+  railProgress: number
+  /** Wheel-controlled destination in the normalized [0, 1] range. */
+  railTargetProgress: number
+}
 
 export interface FreeRoamMotionState {
   grounded: boolean
@@ -39,6 +50,7 @@ export interface FreeRoamRuntimeSnapshot {
   cameraYaw: number
   checkpoint: Vector3Tuple
   diagnostics: FreeRoamDiagnosticsState
+  exploration: FreeRoamExplorationState
   inputMode: FreeRoamInputMode
   interaction: FreeRoamInteractionState
   motion: FreeRoamMotionState
@@ -74,8 +86,11 @@ export interface FreeRoamTouchBridge {
 }
 
 export interface FreeRoamCommands {
+  /** Leaves the authored rail in place and hands authority to direct movement. */
+  enterFreeRoam: () => void
   resetToCheckpoint: () => void
+  /** Rejoins the authored rail at the supplied progress, or at its current progress. */
+  resumeCinematicRail: (progress?: number) => void
   setCheckpoint: (checkpoint: Vector3Tuple) => void
   teleport: (target: Vector3Tuple) => void
 }
-

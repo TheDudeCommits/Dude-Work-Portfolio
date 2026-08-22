@@ -1,4 +1,9 @@
 export { GardenEnvironment } from './GardenEnvironment'
+export {
+  CINEMATIC_GARDEN_ACTS,
+  CinematicGardenSetPieces,
+  type CinematicGardenSetPiecesProps,
+} from './CinematicGardenSetPieces'
 export { InkWashHorizon } from './InkWashHorizon'
 export { InkWanderer } from './InkWanderer'
 export {

@@ -133,17 +133,23 @@ function populateInstances(
 
 export function MonumentalPine({
   playerPositionRef,
+  position = [-5.55, 0, -5.6],
   reducedMotion = false,
 }: {
   playerPositionRef?: WorldPositionRef
+  position?: readonly [number, number, number]
   reducedMotion?: boolean
 }) {
+  const [positionX, positionY, positionZ] = position
   const crown = useRef<THREE.Group>(null)
   const foliage = useRef<THREE.InstancedMesh>(null)
   const inkFoliage = useRef<THREE.InstancedMesh>(null)
   const fringe = useRef<THREE.InstancedMesh>(null)
   const transform = useMemo(() => new THREE.Object3D(), [])
-  const worldPosition = useMemo(() => new THREE.Vector3(-5.55, 0, -5.6), [])
+  const worldPosition = useMemo(
+    () => new THREE.Vector3(positionX, positionY, positionZ),
+    [positionX, positionY, positionZ],
+  )
   const leaf = useMemo(() => createBrushLeafGeometry(1.32, 0.31, 0.18, 9), [])
   const fringeLeaf = useMemo(() => createBrushLeafGeometry(1.78, 0.2, 0.26, 10), [])
   const strokes = useMemo(createCrownStrokes, [])

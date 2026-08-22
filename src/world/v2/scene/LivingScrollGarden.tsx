@@ -7,6 +7,7 @@ import {
   type WorldPositionRef,
 } from '../interactions'
 import { AuthoredRockGarden } from './AuthoredRockGarden'
+import { CinematicGardenSetPieces } from './CinematicGardenSetPieces'
 import { DistantSanctuary } from './DistantSanctuary'
 import { GardenEnvironment } from './GardenEnvironment'
 import { MonumentalPine } from './MonumentalPine'
@@ -49,12 +50,17 @@ export function LivingScrollGarden({
     >
       <group name="living-scroll-garden-v2">
         <GardenEnvironment />
+        <CinematicGardenSetPieces reducedMotion={reducedMotion} />
         <AuthoredRockGarden />
         <DistantSanctuary />
         <PondGarden playerPositionRef={playerPositionRef} reducedMotion={reducedMotion} />
         <MoonBridge />
         <ToriiThreshold />
-        <MonumentalPine playerPositionRef={playerPositionRef} reducedMotion={reducedMotion} />
+        <MonumentalPine
+          playerPositionRef={playerPositionRef}
+          position={[-10.2, 0, -7.15]}
+          reducedMotion={reducedMotion}
+        />
         <ProjectShrines reducedMotion={reducedMotion} />
         <group position={[12.4, 0, -12.6]} scale={1.18}>
           <MonumentalPine playerPositionRef={playerPositionRef} reducedMotion={reducedMotion} />

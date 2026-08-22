@@ -9,6 +9,7 @@ import {
   GardenLighting,
   LivingInkFieldProvider,
   LivingScrollSky,
+  SumiCinemaPass,
   useArtDirector,
   useLivingInkField,
   WindFieldProvider,
@@ -31,7 +32,6 @@ import {
   SpatialZone,
 } from './v2/runtime'
 import {
-  InkWanderer,
   InkWashHorizon,
   LivingScrollColliders,
   LivingScrollGarden,
@@ -247,16 +247,14 @@ function LivingScrollScene({
         <GardenZones />
         <FreeRoamPlayer
           active={active}
-          cameraDistance={7.15}
-          cameraTargetHeight={1.44}
-          initialCameraPitch={0.12}
+          cameraTargetHeight={1.52}
+          initialCameraPitch={0.08}
           initialCameraYaw={0}
+          railProgressDamping={4.8}
+          railScrollSensitivity={0.00046}
+          railTravelSpeed={5.4}
           spawn={SPAWN}
-        >
-          <group scale={0.78}>
-            <InkWanderer reducedMotion={reducedMotion} />
-          </group>
-        </FreeRoamPlayer>
+        />
       </FreeRoamPhysics>
       <PlayerPositionBridge target={playerPosition} />
       <FootstepInkEmitter active={active} playerPosition={playerPosition} />
@@ -270,6 +268,7 @@ function LivingScrollScene({
       />
       <FreeRoamRuntimeSystems active={active} interactions={false} />
       <AdaptiveQuality />
+      <SumiCinemaPass />
       <ReadySignal onReady={onReady} />
     </>
   )

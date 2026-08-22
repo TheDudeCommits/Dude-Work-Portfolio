@@ -75,12 +75,23 @@ function EntryVeil({ exiting, onEnter, ready }: { exiting: boolean; onEnter: () 
   )
 }
 
-function FootstepHint({ visible }: { visible: boolean }) {
+function JourneyHint({ visible }: { visible: boolean }) {
   return (
-    <div aria-hidden="true" className={`footstep-hint${visible ? ' is-visible' : ''}`}>
-      <span />
-      <span />
-      <i />
+    <div aria-hidden="true" className={`journey-hint${visible ? ' is-visible' : ''}`}>
+      <span className="journey-hint__orbit" />
+      <span className="journey-hint__stroke" />
+      <i className="journey-hint__wash" />
+    </div>
+  )
+}
+
+function CinematicFrame() {
+  return (
+    <div aria-hidden="true" className="cinematic-frame">
+      <span className="cinematic-frame__top" />
+      <span className="cinematic-frame__bottom" />
+      <i className="cinematic-frame__left" />
+      <i className="cinematic-frame__right" />
     </div>
   )
 }
@@ -189,14 +200,14 @@ function SymbolicHud({
   interactionAvailable,
   muted,
   onMuteToggle,
-  showFootsteps,
+  showJourneyHint,
   showSocials,
 }: {
   depth: number
   interactionAvailable: boolean
   muted: boolean
   onMuteToggle: () => void
-  showFootsteps: boolean
+  showJourneyHint: boolean
   showSocials: boolean
 }) {
   return (
@@ -212,7 +223,7 @@ function SymbolicHud({
         <span aria-hidden="true" />
       </button>
       <div aria-hidden="true" className="garden-depth-stroke"><i /></div>
-      <FootstepHint visible={showFootsteps} />
+      <JourneyHint visible={showJourneyHint} />
       <TouchJoystick />
       <TouchLookPad />
       <InteractionSeal visible={interactionAvailable} />
@@ -240,6 +251,11 @@ function AccessibleProjectLinks() {
 
 function App() {
   const audio = useRef<HTMLAudioElement>(null)
+  const audioGraph = useRef<{
+    context: AudioContext
+    filter: BiquadFilterNode
+    gain: GainNode
+  } | null>(null)
   const veilTimer = useRef<number | undefined>(undefined)
   const [contextLost, setContextLost] = useState(false)
   const [entered, setEntered] = useState(false)
@@ -251,35 +267,71 @@ function App() {
   const interaction = useFreeRoamStore((state) => state.interaction)
   const diagnostics = useFreeRoamStore((state) => state.diagnostics)
   const pointerLocked = useFreeRoamStore((state) => state.pointerLocked)
+  const explorationMode = useFreeRoamStore((state) => state.exploration.mode)
   const reducedMotion = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, [])
 
   const handleEnter = useCallback(() => {
     if (!ready || entered) return
     const player = audio.current
     if (player) {
-      player.volume = 0.025
+      if (!audioGraph.current && typeof AudioContext !== 'undefined') {
+        const context = new AudioContext()
+        const source = context.createMediaElementSource(player)
+        const filter = context.createBiquadFilter()
+        const gain = context.createGain()
+        filter.type = 'lowpass'
+        filter.frequency.value = 460
+        filter.Q.value = 0.72
+        gain.gain.value = 0.025
+        source.connect(filter).connect(gain).connect(context.destination)
+        audioGraph.current = { context, filter, gain }
+        player.volume = 1
+        void context.resume()
+      } else {
+        player.volume = 0.025
+      }
       void player.play().catch(() => undefined)
     }
     setEntered(true)
     veilTimer.current = window.setTimeout(() => setVeilVisible(false), reducedMotion ? 120 : 1300)
   }, [entered, ready, reducedMotion])
 
-  useEffect(() => () => window.clearTimeout(veilTimer.current), [])
+  useEffect(() => () => {
+    window.clearTimeout(veilTimer.current)
+    const graph = audioGraph.current
+    audioGraph.current = null
+    if (graph) void graph.context.close()
+  }, [])
 
   useEffect(() => {
     const player = audio.current
     if (!player) return
     const distanceToHeart = Math.hypot(motion.position[0], motion.position[2] + 5)
     const proximity = 1 - smoothstep(distanceToHeart, 8, 30)
-    player.volume = muted ? 0 : Math.min(0.58, 0.025 + proximity * 0.53)
+    const targetGain = muted ? 0 : Math.min(0.58, 0.025 + proximity * 0.53)
+    const graph = audioGraph.current
+    if (graph) {
+      const now = graph.context.currentTime
+      graph.gain.gain.setTargetAtTime(targetGain, now, 0.42)
+      graph.filter.frequency.setTargetAtTime(460 + proximity * 7_400, now, 0.55)
+      graph.filter.Q.setTargetAtTime(0.72 + proximity * 0.9, now, 0.6)
+    } else {
+      player.volume = targetGain
+    }
   }, [motion.position, muted])
 
   useEffect(() => {
     const onVisibility = () => {
       const player = audio.current
       if (!player || !entered) return
-      if (document.hidden) player.pause()
-      else if (!muted) void player.play().catch(() => undefined)
+      const graph = audioGraph.current
+      if (document.hidden) {
+        player.pause()
+        if (graph) void graph.context.suspend()
+      } else if (!muted) {
+        if (graph) void graph.context.resume()
+        void player.play().catch(() => undefined)
+      }
     }
     document.addEventListener('visibilitychange', onVisibility)
     return () => document.removeEventListener('visibilitychange', onVisibility)
@@ -315,11 +367,12 @@ function App() {
   }, [])
 
   const gardenDepth = Math.max(0, Math.min(1, (18.6 - motion.position[2]) / 38.6))
-  const showFootsteps = motion.speed < 0.08 && Math.hypot(motion.position[0], motion.position[2] - 18.6) < 1.4
-  const showSocials = gardenDepth > 0.22 || activeZone?.id === 'project-court'
+  const showJourneyHint = motion.speed < 0.08 && Math.hypot(motion.position[0], motion.position[2] - 18.6) < 1.4
+  const reachedProjectCourt = gardenDepth > 0.82
+  const showSocials = reachedProjectCourt
 
   return (
-    <main className={`experience${entered ? ' has-entered' : ''}${contextLost ? ' has-context-loss' : ''}`}>
+    <main className={`experience${entered ? ' has-entered' : ''}${contextLost ? ' has-context-loss' : ''}${explorationMode !== 'free' ? ' is-cinematic-rail' : ' is-free-roam'}${reachedProjectCourt ? ' is-project-court' : ''}`}>
       <LivingScrollWorld
         active={entered && !contextLost}
         onContextLost={setContextLost}
@@ -337,10 +390,11 @@ function App() {
             if (muted && audio.current?.paused) void audio.current.play().catch(() => undefined)
             setMuted((value) => !value)
           }}
-          showFootsteps={showFootsteps}
+          showJourneyHint={showJourneyHint}
           showSocials={showSocials}
         />
       )}
+      <CinematicFrame />
       <div aria-hidden="true" className="paper-grain" />
       <div aria-hidden="true" className="context-loss-mark" />
       <AccessibleProjectLinks />

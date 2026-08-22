@@ -26,15 +26,38 @@ export type ArtPaletteRole = keyof typeof ART_PALETTE
 export const ART_SCENE = {
   background: ART_PALETTE.mist,
   fog: ART_PALETTE.mist,
-  fogDensity: 0.0105,
-  exposure: 0.9,
-  ritualExposureLift: 0.09,
+  fogDensity: 0.0125,
+  exposure: 0.78,
+  ritualExposureLift: 0.12,
   keyLight: ART_PALETTE.warmLight,
   fillLight: ART_PALETTE.coolLight,
   hemisphereSky: ART_PALETTE.washi,
   hemisphereGround: ART_PALETTE.soot,
   ritualLight: ART_PALETTE.oldGold,
   outline: ART_PALETTE.soot,
+} as const
+
+/**
+ * Shared cinematic treatment. These values deliberately keep the world close
+ * to monochrome while protecting the two ceremonial pigments from the grade.
+ */
+export const ART_CINEMA = {
+  accentGold: ART_PALETTE.oldGold,
+  accentVermilion: ART_PALETTE.vermilion,
+  atmosphereInk: ART_PALETTE.soot,
+  atmosphereMist: ART_PALETTE.mist,
+  atmospherePaper: ART_PALETTE.washi,
+  atmospherePine: ART_PALETTE.pine,
+  backlight: ART_PALETTE.warmLight,
+  backlightIntensity: 3.35,
+  edgeInkStrength: 0.58,
+  exposureBreath: 0.024,
+  filmDesaturation: 0.68,
+  fogBreath: 0.12,
+  letterboxWash: 0.048,
+  paperGrainStrength: 0.016,
+  rimLight: ART_PALETTE.coolLight,
+  rimLightIntensity: 0.32,
 } as const
 
 export const ART_ASSETS = {
@@ -152,10 +175,10 @@ export const SUMI_MATERIAL_ROLES = {
     emissive: ART_PALETTE.oldGold,
     emissiveIntensity: 0.02,
     inkResponse: 0.38,
-    metalness: 0.28,
+    metalness: 0,
     paperResponse: 0.28,
     ritualResponse: 0.62,
-    roughness: 0.7,
+    roughness: 0.86,
   },
   indigo: {
     base: ART_PALETTE.indigo,

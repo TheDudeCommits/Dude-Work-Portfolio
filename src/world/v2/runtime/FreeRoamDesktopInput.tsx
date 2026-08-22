@@ -7,6 +7,7 @@ export interface FreeRoamDesktopInputProps {
   active?: boolean
   dragButton?: number
   pointerLock?: boolean
+  scrollNavigation?: boolean
 }
 
 const isEditableTarget = (target: EventTarget | null) => {
@@ -21,6 +22,7 @@ export function FreeRoamDesktopInput({
   active = true,
   dragButton = 0,
   pointerLock = true,
+  scrollNavigation = true,
 }: FreeRoamDesktopInputProps) {
   const canvas = useThree((state) => state.gl.domElement)
 
@@ -98,10 +100,28 @@ export function FreeRoamDesktopInput({
       if (active) event.preventDefault()
     }
 
+    const onWheel = (event: WheelEvent) => {
+      if (
+        !active
+        || !scrollNavigation
+        || event.ctrlKey
+        || event.metaKey
+        || isEditableTarget(event.target)
+      ) return
+      event.preventDefault()
+      const unit = event.deltaMode === WheelEvent.DOM_DELTA_LINE
+        ? 16
+        : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+          ? Math.max(window.innerHeight, 1)
+          : 1
+      freeRoamInput.addScroll(event.deltaY * unit)
+    }
+
     canvas.tabIndex = 0
     window.addEventListener('keydown', onKeyDown, { passive: false })
     window.addEventListener('keyup', onKeyUp, { passive: false })
     window.addEventListener('blur', resetDesktop)
+    window.addEventListener('wheel', onWheel, { passive: false })
     document.addEventListener('pointermove', onDocumentPointerMove)
     document.addEventListener('pointerlockchange', onPointerLockChange)
     document.addEventListener('visibilitychange', onVisibilityChange)
@@ -117,6 +137,7 @@ export function FreeRoamDesktopInput({
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('keyup', onKeyUp)
       window.removeEventListener('blur', resetDesktop)
+      window.removeEventListener('wheel', onWheel)
       document.removeEventListener('pointermove', onDocumentPointerMove)
       document.removeEventListener('pointerlockchange', onPointerLockChange)
       document.removeEventListener('visibilitychange', onVisibilityChange)
@@ -129,8 +150,7 @@ export function FreeRoamDesktopInput({
       freeRoamStore.getState().setPointerLocked(false)
       resetDesktop()
     }
-  }, [active, canvas, dragButton, pointerLock])
+  }, [active, canvas, dragButton, pointerLock, scrollNavigation])
 
   return null
 }
-

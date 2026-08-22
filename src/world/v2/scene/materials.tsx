@@ -117,12 +117,18 @@ const portalFragment = /* glsl */ `
     float scrollRadius = length(centered * vec2(0.82, 1.0));
     float edge = 1.0 - smoothstep(0.35 + frayed * 0.1, 0.52, scrollRadius);
 
-    // Deliberately sample a low-resolution impression of the project. It keeps
-    // the portal wordless and reads as pigment rather than a flat screenshot.
-    vec2 sampleUv = (floor((vUv + vec2(wash * 0.008, 0.0)) * vec2(38.0, 48.0)) + 0.5) / vec2(38.0, 48.0);
+    // Domain-warp the image continuously so it moves like wet pigment on paper
+    // without introducing a digital pixel grid.
+    float warpX = noise(vUv * 7.0 + vec2(uTime * 0.011, 3.2));
+    float warpY = noise(vUv * 9.0 + vec2(-2.4, uTime * 0.009));
+    vec2 sampleUv = vUv
+      + (vec2(warpX, warpY) - 0.5) * (0.018 + uEnergy * 0.012)
+      + vec2((wash - 0.5) * 0.014, 0.0);
     vec3 source = texture2D(uImage, clamp(sampleUv, 0.01, 0.99)).rgb;
     float luma = dot(source, vec3(0.299, 0.587, 0.114));
-    vec3 pigment = mix(uShadowInk, uPaper, smoothstep(0.12, 0.86, luma));
+    float pigmentPools = noise(vUv * 13.0 + vec2(wash * 1.7, -wash));
+    float pooledLuma = smoothstep(0.1, 0.88, luma + (pigmentPools - 0.5) * 0.13);
+    vec3 pigment = mix(uShadowInk, uPaper, pooledLuma);
     pigment = mix(pigment, uCeladon, smoothstep(0.5, 0.92, source.b - source.r * 0.35) * (0.3 + uEnergy * 0.28));
     pigment += (fibres - 0.5) * 0.035;
     pigment += uGold * uEnergy * pow(1.0 - length(centered) * 1.5, 3.0) * 0.4;

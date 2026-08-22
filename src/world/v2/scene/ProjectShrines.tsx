@@ -48,17 +48,19 @@ function BrushArc({
 
 function OmniSculpture() {
   const arcs = useMemo(() => [
-    createTaperedTubeGeometry(circleStrokePoints(1.02, 1.02, -2.8, 2.85, 18), { radius: 0.045, endScale: 0.05, startScale: 0.8, radialSegments: 6, seed: 3 }),
-    createTaperedTubeGeometry(circleStrokePoints(1.2, 0.55, -2.8, 2.9, 18), { radius: 0.035, endScale: 0.04, startScale: 0.78, radialSegments: 6, seed: 8 }),
-    createTaperedTubeGeometry(circleStrokePoints(1.15, 0.48, -2.65, 3.0, 18), { radius: 0.03, endScale: 0.03, startScale: 0.7, radialSegments: 6, seed: 13 }),
+    createTaperedTubeGeometry(circleStrokePoints(0.96, 0.96, -2.42, 2.58, 17), { radius: 0.027, endScale: 0.025, startScale: 0.68, radialSegments: 5, seed: 3 }),
+    createTaperedTubeGeometry(circleStrokePoints(1.08, 0.51, -2.28, 2.68, 17), { radius: 0.021, endScale: 0.02, startScale: 0.64, radialSegments: 5, seed: 8 }),
+    createTaperedTubeGeometry(circleStrokePoints(1.04, 0.44, -2.18, 2.72, 17), { radius: 0.018, endScale: 0.018, startScale: 0.58, radialSegments: 5, seed: 13 }),
   ], [])
-  const core = useMemo(() => createScholarStoneGeometry(0.28, 82, 18), [])
+  const core = useMemo(() => createScholarStoneGeometry(0.32, 82, 18), [])
   return (
-    <group>
-      <BrushArc geometry={arcs[0]} />
-      <group rotation={[0.92, 0.1, 0.28]}><BrushArc geometry={arcs[1]} role="indigo" /></group>
-      <group rotation={[-0.74, 0.4, -0.25]}><BrushArc geometry={arcs[2]} role="vermilion" /></group>
-      <mesh castShadow geometry={core}><GardenSurface role="gold" /></mesh>
+    <group scale={0.7}>
+      <group scale={0.78}>
+        <BrushArc geometry={arcs[0]} />
+        <group rotation={[0.92, 0.1, 0.28]}><BrushArc geometry={arcs[1]} role="indigo" /></group>
+        <group rotation={[-0.74, 0.4, -0.25]}><BrushArc geometry={arcs[2]} role="vermilion" /></group>
+      </group>
+      <mesh castShadow geometry={core} rotation={[0.08, -0.18, -0.12]} scale={[1.08, 0.9, 0.74]}><GardenSurface role="gold" /></mesh>
     </group>
   )
 }
@@ -236,7 +238,7 @@ function ProjectShrine({
   reducedMotion: boolean
 }) {
   const descriptor = useMemo<GardenInteractionDescriptor>(() => ({
-    focusRadius: 4.2,
+    focusRadius: 4.9,
     id: `project-shrine:${project.slug}`,
     kind: 'project-shrine',
     metadata: { href: project.href, projectSlug: project.slug },
@@ -253,11 +255,11 @@ function ProjectShrine({
   const terrace = useMemo(() => createOrganicPlateGeometry(2.72, 2.28, 0.34, project.slug.length * 17, 64), [project.slug])
   const upperTerrace = useMemo(() => createOrganicPlateGeometry(2.24, 1.88, 0.26, project.slug.length * 23, 58), [project.slug])
   const membrane = useMemo(() => createPortalMembraneGeometry(2.45, 2.95, 24, 30), [])
-  const halo = useMemo(() => createTaperedTubeGeometry(circleStrokePoints(1.72, 1.72, -2.65, 3.4, 22), {
+  const halo = useMemo(() => createTaperedTubeGeometry(circleStrokePoints(1.44, 1.44, -2.5, 3.22, 22), {
     endScale: 0.025,
     irregularity: 0.1,
     radialSegments: 6,
-    radius: 0.035,
+    radius: 0.022,
     seed: project.slug.length * 7,
     startScale: 0.72,
     tubularSegments: 70,
@@ -295,7 +297,7 @@ function ProjectShrine({
       root.current.position.y = placement.position[1] + (reducedMotion ? 0 : Math.sin(clock.elapsedTime * 0.52 + project.slug.length) * 0.025)
     }
     if (sculpture.current) {
-      sculpture.current.rotation.y += reducedMotion ? 0 : delta * (0.04 + energy.current * 0.16)
+      sculpture.current.rotation.y += reducedMotion ? 0 : delta * (0.012 + energy.current * 0.045)
       const scale = 1.32 + energy.current * 0.22
       sculpture.current.scale.setScalar(scale)
     }
