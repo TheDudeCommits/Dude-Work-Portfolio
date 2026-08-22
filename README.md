@@ -1,13 +1,15 @@
 # Dude.Work — Living Ink Journey
 
-A wordless Three.js/WebGL portfolio experienced as a passage through a living sumi-e painting. The visitor begins outside a torii, follows an ink-washed garden toward a monumental koi fusuma, then crosses through the painting itself into an enso sanctuary containing nine project portals.
+A wordless, true-3D Three.js/WebGL portfolio experienced as a walk through a living sumi-e garden. The visitor begins outside a torii, crosses an arched sacred bridge, follows a lantern procession to monumental koi fusuma, and walks through the pavilion into an enso mirror court containing nine project portals.
 
 ## Experience
 
-- Four original, high-resolution sumi-e environment paintings composed as a continuous cinematic journey
-- Custom GLSL wet-ink transitions, pigment diffusion, paper grain, water shimmer and parallax depth
-- A painterly fusuma threshold that physically parts into the final sanctuary
-- A constellation of nine irregular, living-ink project portals arranged around the enso
+- Perspective first-person movement along a physically authored Catmull-Rom garden route
+- Original procedural torii, sacred bridge, lanterns, pavilion, fusuma, vegetation, water and mirror court
+- Custom GLSL sumi materials, wet pigment flow, wind, waterfall, pond, mirror-water and full-frame ink bleed
+- Instanced pines, maples, bamboo, grasses, leaves and optimized scanned moss-rock geometry
+- Physical fusuma that part as the visitor climbs into and crosses the pavilion
+- Nine image-only project pavilions arranged around a tapered 3D enso brushstroke
 - Keyboard, mouse, wheel and responsive touch controls
 - Spatially rising ambient music sourced from the existing Dude.Work dashboard
 - Wordless visual interface with symbolic audio, journey and social controls
@@ -37,4 +39,4 @@ npm run build
 
 ## Implementation notes
 
-The experience uses an orthographic 2.5D WebGL stage: authored paintings carry the environmental detail while custom fragment shaders make the ink breathe, pool, shimmer and dissolve from one scene into the next. The linked reference experiences were used only as creative direction; no source code or artwork was copied from Kage or the other benchmark sites. Project artwork and the bamboo-flute recording are user-provided assets. See `THIRD_PARTY_NOTICES.md` for dependency and asset provenance.
+The experience uses a perspective React Three Fiber scene with a real moving camera, continuous world-space geometry and adaptive rendering. Project artwork and the bamboo-flute recording are user-provided assets. The linked reference experiences were used only as creative direction; no source code, shaders, camera data, models or artwork were copied from Kage or any benchmark site. See `THIRD_PARTY_NOTICES.md` and `docs/ASSET_MANIFEST.md` for provenance.

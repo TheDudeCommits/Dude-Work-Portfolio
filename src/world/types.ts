@@ -11,3 +11,10 @@ export interface JourneyInput {
 export type JourneyInputRef = MutableRefObject<JourneyInput>
 export type ProgressRef = MutableRefObject<number>
 
+export interface PlayerRigProps {
+  active: boolean
+  inputRef: JourneyInputRef
+  onProgress: (progress: number) => void
+  progressRef: ProgressRef
+  reducedMotion?: boolean
+}

@@ -70,7 +70,7 @@ button {
     url('/assets/kozo-washi.webp');
   background-position: center;
   background-size: cover, 820px;
-  opacity: .16;
+  opacity: .075;
   mix-blend-mode: soft-light;
 }
 
